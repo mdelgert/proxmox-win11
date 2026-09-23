@@ -17,7 +17,11 @@ WINDOWS_SOURCE_NAME="${WINDOWS_URL##*/}"
 WINDOWS_SINGLE_NAME="windows11-autounattend.iso"
 WINDOWS_NOPROMPT_NAME="windows11-noprompt.iso"
 UNATTEND_ISO_NAME="unattend.iso"
-AUTOUNATTEND_XML="${AUTOUNATTEND_XML:-$ROOT_DIR/assets/Autounattend.xml}"
+# Lowercase on disk, matching the unattend-generator export. This path is on a
+# case-sensitive filesystem, so the spelling has to be exact. build-iso.sh
+# writes the file to the ISO root as Autounattend.xml, where Windows Setup
+# looks it up case-insensitively.
+AUTOUNATTEND_XML="${AUTOUNATTEND_XML:-$ROOT_DIR/assets/autounattend.xml}"
 
 msg()  { printf '\n==> %s\n' "$*"; }
 warn() { printf '\nWARNING: %s\n' "$*" >&2; }

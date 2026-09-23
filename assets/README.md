@@ -2,7 +2,7 @@
 
 Place your Windows unattended answer file at:
 
-`assets/Autounattend.xml`
+`assets/autounattend.xml`
 
 A convenient generator is:
 

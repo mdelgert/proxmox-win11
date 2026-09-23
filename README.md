@@ -59,7 +59,7 @@ ide1  unattend.iso
 ide2  windows11-noprompt.iso
 ```
 
-Both modes use the same `assets/Autounattend.xml` file as the source of truth.
+Both modes use the same `assets/autounattend.xml` file as the source of truth.
 
 ## Repository layout
 
@@ -68,21 +68,13 @@ proxmox-win11/
 ├── install.sh
 ├── README.md
 ├── LICENSE
-├── .gitignore
 ├── assets/
-│   └── README.md
+│   ├── README.md
+│   └── autounattend.xml
 └── lib/
     ├── common.sh
     ├── build-iso.sh
     └── create-vm.sh
-```
-
-After you add your answer file:
-
-```text
-assets/
-├── README.md
-└── Autounattend.xml
 ```
 
 ## Requirements
@@ -120,10 +112,15 @@ https://github.com/cschneegans/unattend-generator
 Generate your file and save it as:
 
 ```text
-assets/Autounattend.xml
+assets/autounattend.xml
 ```
 
-The filename matters. Windows Setup expects the conventional `Autounattend.xml` name during automatic discovery.
+Keep the generator's lowercase filename. The repository path is read on Linux,
+where case is significant, so it has to match exactly. The helper then writes
+the file to the ISO root as `Autounattend.xml` — the conventional spelling, and
+one Windows Setup resolves case-insensitively either way.
+
+Set `AUTOUNATTEND_XML` to use an answer file from anywhere else on the host.
 
 ### Security warning
 
@@ -136,9 +133,12 @@ Before committing `Autounattend.xml` to a public Git repository, inspect it care
 - organization-specific settings
 - other secrets
 
-For that reason, `assets/Autounattend.xml` is ignored by the included `.gitignore` by default.
+`assets/autounattend.xml` is committed here so the one-line launcher has an
+answer file to use, so treat it as lab-only defaults. Note that
+`<PlainText>false</PlainText>` is base64-encoded UTF-16, not encryption.
 
-If you intentionally want to publish the file, remove that ignore rule only after confirming the file contains nothing sensitive.
+For real credentials, keep the file out of Git and pass
+`AUTOUNATTEND_XML=/path/to/autounattend.xml` instead.
 
 ## Installation
 
@@ -154,7 +154,7 @@ cd proxmox-win11
 Add your answer file:
 
 ```bash
-nano assets/Autounattend.xml
+nano assets/autounattend.xml
 ```
 
 Make the entry script executable:
@@ -171,15 +171,33 @@ Run it:
 
 ### Option 2: One-line helper-style launcher
 
-Once the repository is public, you can expose a Helper-Scripts-style command such as:
+On the Proxmox host:
 
 ```bash
 bash -c "$(curl -fsSL https://raw.githubusercontent.com/mdelgert/proxmox-win11/main/install.sh)"
 ```
 
-However, the current scaffold sources files from `lib/`, so a raw one-file invocation is **not yet the recommended launcher**. For the initial version, clone the repository and run `./install.sh`.
+`install.sh` detects that it was not started from a checkout and downloads the
+repository to a temporary directory before sourcing `lib/`. The temporary
+directory is removed when the script exits.
 
-A later release can add a small bootstrap script that downloads the repository to a temporary directory and then executes `install.sh`. That preserves the clean multi-file project while still providing a one-line installation command.
+This mode uses the `assets/autounattend.xml` committed to the repository. To
+supply your own answer file, place it on the Proxmox host and point at it:
+
+```bash
+AUTOUNATTEND_XML=/root/Autounattend.xml \
+  bash -c "$(curl -fsSL https://raw.githubusercontent.com/mdelgert/proxmox-win11/main/install.sh)"
+```
+
+To bootstrap from a fork or a branch, set `REPO_SLUG` or `REPO_REF`:
+
+```bash
+REPO_REF=develop bash -c "$(curl -fsSL https://raw.githubusercontent.com/mdelgert/proxmox-win11/develop/install.sh)"
+```
+
+Use `bash -c "$(curl ...)"` rather than `curl ... | bash`. Piping into bash
+gives the script the download as its standard input, which breaks the
+`whiptail` menus.
 
 ## Running the helper
 
@@ -193,7 +211,7 @@ The script first validates that:
 
 - it is running as root
 - `qm` and `pvesm` are available
-- `assets/Autounattend.xml` exists
+- `assets/autounattend.xml` exists
 
 It then installs any missing dependencies.
 
@@ -389,7 +407,7 @@ This is the fast development path.
 Edit:
 
 ```text
-assets/Autounattend.xml
+assets/autounattend.xml
 ```
 
 Run the helper again and choose Dual ISO mode. The tiny `unattend.iso` is always regenerated from the current XML.
@@ -515,12 +533,12 @@ Use a file-backed ISO storage such as:
 
 VM disks can still live on LVM-thin, ZFS, Ceph, or another image-capable backend.
 
-### `Missing assets/Autounattend.xml`
+### `Missing assets/autounattend.xml`
 
 Generate or copy your answer file into:
 
 ```text
-assets/Autounattend.xml
+assets/autounattend.xml
 ```
 
 ### Windows Setup starts again after reboot
@@ -556,7 +574,6 @@ Not yet implemented:
 - post-install guest-agent bootstrap validation
 - templates / linked clones
 - automated detection that Windows installation has completed
-- one-file remote bootstrap installer
 - CI shell linting
 
 These are good follow-up features after the core installation flow has been tested on multiple Proxmox systems.
