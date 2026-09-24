@@ -1,0 +1,28 @@
+# yaml-language-server: $schema=https://aka.ms/configuration-dsc-schema/0.2
+
+properties:
+  configurationVersion: 0.2.0
+  resources:
+    - resource: Microsoft.WinGet.DSC/WinGetPackage
+      id: ClaudeCode
+      settings:
+        id: Anthropic.ClaudeCode
+        source: winget
+        
+    - resource: Microsoft.WinGet.DSC/WinGetPackage
+      id: GitHubCopilot
+      settings:
+        id: GitHub.Copilot
+        source: winget
+
+    - resource: Microsoft.WinGet.DSC/WinGetPackage
+      id: OpenAICodex
+      settings:
+        id: OpenAI.Codex
+        source: winget
+
+    - resource: Microsoft.WinGet.DSC/WinGetPackage
+      id: OpenAICodex
+      settings:
+        id: OpenAI.Codex
+        source: winget
