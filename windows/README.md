@@ -85,7 +85,9 @@ proxmox-win11/
     ├── UserOnce.ps1              # tiny script pasted into Unattend Generator
     ├── bootstrap.ps1             # master Windows customization runner
     └── steps/
-        └── 010-base.ps1          # first example customization step
+        ├── 010-base.ps1          # first example customization step
+        ├── 020-openssh.ps1       # installs and enables OpenSSH Server
+        └── 030-ssh-keys.ps1      # installs public SSH keys from GitHub
 ```
 
 As customization grows, add numbered step files:
@@ -94,9 +96,10 @@ As customization grows, add numbered step files:
 windows/steps/
 ├── 010-base.ps1
 ├── 020-openssh.ps1
-├── 030-winget.ps1
-├── 040-git.ps1
-└── 050-apps.ps1
+├── 030-ssh-keys.ps1
+├── 040-winget.ps1
+├── 050-git.ps1
+└── 060-apps.ps1
 ```
 
 Do **not** turn `bootstrap.ps1` into one giant customization script. Keep orchestration in the bootstrap and actual changes in small steps.
@@ -430,7 +433,9 @@ The bootstrap contains an ordered list:
 
 ```powershell
 $Steps = @(
-    @{ Name = '010-base'; Path = 'windows/steps/010-base.ps1' }
+    @{ Name = '010-base';     Path = 'windows/steps/010-base.ps1' },
+    @{ Name = '020-openssh';  Path = 'windows/steps/020-openssh.ps1' },
+    @{ Name = '030-ssh-keys'; Path = 'windows/steps/030-ssh-keys.ps1' }
 )
 ```
 
@@ -564,10 +569,11 @@ Recommended development order:
 ```text
 010-base.ps1
 020-openssh.ps1
-030-winget.ps1
-040-git.ps1
-050-apps.ps1
-060-windows-update.ps1
+030-ssh-keys.ps1
+040-winget.ps1
+050-git.ps1
+060-apps.ps1
+070-windows-update.ps1
 ```
 
 Start with `010-base.ps1` only and prove that:
@@ -584,6 +590,74 @@ Then add one feature at a time.
 ### OpenSSH
 
 OpenSSH Server is a good early test because it is a Windows capability and can be managed with built-in PowerShell/Windows tooling.
+
+This is implemented in `windows/steps/020-openssh.ps1`. The step:
+
+- finds the versioned `OpenSSH.Server*` capability instead of hardcoding a version
+- installs it with `Add-WindowsCapability` only when it is not already installed
+- sets the `sshd` service to `Automatic` and starts it
+- creates or enables the `OpenSSH-Server-In-TCP` inbound firewall rule on TCP 22
+- sets the machine-wide OpenSSH `DefaultShell` to Windows PowerShell
+- verifies the service is running and `Automatic` before returning
+
+No reboot is required. The capability is downloaded from Windows Update as a
+Feature on Demand, so the VM needs internet access (or a configured local
+capability source) when this step runs.
+
+After it completes you can connect with the local account created by
+`Autounattend.xml`:
+
+```bash
+ssh <user>@<vm-ip>
+```
+
+### SSH keys
+
+`windows/steps/030-ssh-keys.ps1` installs the public keys published at:
+
+```text
+https://github.com/mdelgert.keys
+```
+
+GitHub exposes only public keys at that URL, so nothing secret is downloaded.
+
+Change the account by editing `$GitHubUser` at the top of the step.
+
+Keys are written to:
+
+```text
+C:\ProgramData\ssh\administrators_authorized_keys
+```
+
+That file — not the usual `~/.ssh/authorized_keys` — is the correct location
+because the default Windows `sshd_config` ends with:
+
+```text
+Match Group administrators
+       AuthorizedKeysFile __PROGRAMDATA__/ssh/administrators_authorized_keys
+```
+
+For any account in the Administrators group, that directive replaces the
+per-user file, so a key placed in the user profile is ignored. The account
+created by `Autounattend.xml` is an administrator, so the machine-wide file is
+what matters. A standard (non-administrator) account would instead need
+`C:\Users\<user>\.ssh\authorized_keys`, which this step does not manage.
+
+The step:
+
+- rejects any downloaded line that is not a recognized SSH public key, so an
+  error page or captive-portal response is never written into the key file
+- preserves keys that are already present and never appends a duplicate
+- writes ASCII with LF endings, because `sshd` rejects a UTF-8 BOM
+- restricts the file to `Administrators` and `SYSTEM` with `icacls` using
+  well-known SIDs, since `sshd` ignores a file that others can write
+- verifies every downloaded key is present in the file before returning
+
+No reboot or service restart is needed; `sshd` reads authorized key files on
+every incoming connection.
+
+Password authentication is left enabled. Disabling it is a separate decision
+and belongs in its own step, after you have confirmed key login works.
 
 ### WinGet
 
@@ -1085,7 +1159,8 @@ Not yet implemented:
 - PowerShell 7 installation
 - WinGet bootstrap/update logic
 - Git installation
-- OpenSSH installation
+- per-user `authorized_keys` for non-administrator accounts
+- hardening `sshd_config` (for example disabling password authentication)
 - Windows Update orchestration
 - per-user customization after the machine-wide provisioning phase
 - cryptographic verification of downloaded customization scripts
@@ -1150,6 +1225,11 @@ https://github.com/community-scripts/core
 
 MIT. See [LICENSE](LICENSE).
 
+
+```powershell
+
 powershell.exe -NoLogo -NoProfile -ExecutionPolicy Bypass -Command "$u='https://raw.githubusercontent.com/mdelgert/proxmox-win11/main/windows/bootstrap.ps1';$f=\"$env:TEMP\proxmox-win11-bootstrap.ps1\";[Net.ServicePointManager]::SecurityProtocol=[Net.SecurityProtocolType]::Tls12;Invoke-WebRequest -UseBasicParsing -Uri $u -OutFile $f;& powershell.exe -NoLogo -NoProfile -ExecutionPolicy Bypass -File $f"
 
 powershell.exe -NoLogo -NoProfile -ExecutionPolicy Bypass -Command "$u='https://raw.githubusercontent.com/mdelgert/proxmox-win11/main/windows/bootstrap.ps1';$f=\"$env:TEMP\proxmox-win11-bootstrap.ps1\";[Net.ServicePointManager]::SecurityProtocol=[Net.SecurityProtocolType]::Tls12;Invoke-WebRequest -UseBasicParsing -Uri $u -OutFile $f;& powershell.exe -NoLogo -NoProfile -ExecutionPolicy Bypass -File $f -NoReboot"
+
+```
