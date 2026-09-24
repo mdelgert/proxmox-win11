@@ -51,7 +51,7 @@ $RawBase = "https://raw.githubusercontent.com/$RepoOwner/$RepoName/$RepoRef"
 # A step is marked complete only after it exits without throwing an error.
 $Steps = @(
     @{ Name = '010-base'; Path = 'windows/steps/010-base.ps1' }
-    @{ Name = '020-remove-autologon'; Path = 'windows/steps/020-remove-autologon.ps1' }
+    @{ Name = '020-remove-autologoncount'; Path = 'windows/steps/020-remove-autologoncount.ps1' }
     @{ Name = '030-winget-ready'; Path = 'windows/steps/030-winget-ready.ps1' }
     @{ Name = '040-winget-baseline'; Path = 'windows/steps/040-winget-baseline.ps1' }
     @{ Name = '020-openssh'; Path = 'windows/steps/020-openssh.ps1' }
