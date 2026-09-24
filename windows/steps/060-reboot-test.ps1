@@ -5,15 +5,15 @@
 
 $ErrorActionPreference = 'Stop'
 
-Write-Host '060: Reboot test starting.'
+Write-Host 'Reboot test starting.'
 
 $marker = 'C:\ProgramData\proxmox-win11\060-before-reboot.txt'
 
 Set-Content `
     -Path $marker `
-    -Value "060 completed before reboot at $(Get-Date)"
+    -Value "completed before reboot at $(Get-Date)"
 
-Write-Host "060: Wrote marker: $marker"
-Write-Host '060: Requesting reboot.'
+Write-Host "Wrote marker: $marker"
+Write-Host 'Requesting reboot.'
 
 Request-Reboot

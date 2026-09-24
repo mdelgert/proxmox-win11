@@ -66,8 +66,7 @@ $Steps = @(
     '030-update-winget'
     '030-winget-ready'
     '030-winget-configure'
-    '060-reboot-test'
-    '070-after-reboot'
+    '050-hermes'
 )
 
 function Write-Log {
