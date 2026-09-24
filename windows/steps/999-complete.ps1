@@ -1,6 +1,4 @@
-# 999-complete.ps1
-# Final provisioning step.
-# Compatible with Windows PowerShell 5.1.
+#Requires -Version 5.1
 
 $ErrorActionPreference = 'Stop'
 
