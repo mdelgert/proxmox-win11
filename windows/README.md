@@ -1248,6 +1248,6 @@ powershell.exe -NoLogo -NoProfile -ExecutionPolicy Bypass -Command "$u='https://
 
 powershell.exe -NoLogo -NoProfile -ExecutionPolicy Bypass -File "C:\ProgramData\proxmox-win11\cache\025-update-winget.ps1"
 
-powershell.exe -NoLogo -NoProfile -ExecutionPolicy Bypass -Command "$u='https://raw.githubusercontent.com/mdelgert/proxmox-win11/main/windows/steps/025-update-winget.ps1';$f=Join-Path $env:TEMP '025-update-winget.ps1';Invoke-WebRequest -UseBasicParsing -Uri $u -OutFile $f;& powershell.exe -NoLogo -NoProfile -ExecutionPolicy Bypass -File $f"
+powershell.exe -NoLogo -NoProfile -ExecutionPolicy Bypass -Command "$u='https://raw.githubusercontent.com/mdelgert/proxmox-win11/main/windows/steps/025-update-winget-v1.ps1';$f=Join-Path $env:TEMP '025-update-winget.ps1';Invoke-WebRequest -UseBasicParsing -Uri $u -OutFile $f;& powershell.exe -NoLogo -NoProfile -ExecutionPolicy Bypass -File $f"
 
 ```
