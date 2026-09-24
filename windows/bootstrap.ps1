@@ -54,13 +54,13 @@ $Steps = @(
     @{ Name = '020-remove-autologon'; Path = 'windows/steps/020-remove-autologon.ps1' }
     @{ Name = '030-winget-ready'; Path = 'windows/steps/030-winget-ready.ps1' }
     @{ Name = '040-winget-test'; Path = 'windows/steps/040-winget-test.ps1' }
-    # @{ Name = '020-openssh'; Path = 'windows/steps/020-openssh.ps1' }
-    # @{ Name = '030-ssh-keys'; Path = 'windows/steps/030-ssh-keys.ps1' }
-    # @{ Name = '040-git'; Path = 'windows/steps/040-git.ps1' }
-    # @{ Name = '050-apps'; Path = 'windows/steps/050-apps.ps1' }
-    # @{ Name = '060-reboot-test'; Path = 'windows/steps/060-reboot-test.ps1' }
-    # @{ Name = '070-after-reboot'; Path = 'windows/steps/070-after-reboot.ps1' }
-    # @{ Name = '999-complete'; Path = 'windows/steps/999-complete.ps1' }
+    @{ Name = '020-openssh'; Path = 'windows/steps/020-openssh.ps1' }
+    @{ Name = '030-ssh-keys'; Path = 'windows/steps/030-ssh-keys.ps1' }
+    @{ Name = '040-git'; Path = 'windows/steps/040-git.ps1' }
+    @{ Name = '050-apps'; Path = 'windows/steps/050-apps.ps1' }
+    @{ Name = '060-reboot-test'; Path = 'windows/steps/060-reboot-test.ps1' }
+    @{ Name = '070-after-reboot'; Path = 'windows/steps/070-after-reboot.ps1' }
+    @{ Name = '999-complete'; Path = 'windows/steps/999-complete.ps1' }
 )
 
 function Write-Log {
