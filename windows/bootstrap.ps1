@@ -57,7 +57,7 @@ $Steps = @(
     # @{ Name = '050-apps'; Path = 'windows/steps/050-apps.ps1' }
     @{ Name = '060-reboot-test'; Path = 'windows/steps/060-reboot-test.ps1' }
     @{ Name = '070-after-reboot'; Path = 'windows/steps/070-after-reboot.ps1' }
-    @{ Name = '999-complete'; Path = 'windows/steps/999-complete.ps1' }
+    # @{ Name = '999-complete'; Path = 'windows/steps/999-complete.ps1' }
 )
 
 function Write-Log {
@@ -267,7 +267,9 @@ try {
         }
     }
 
-    Disable-SetupAutoLogon
+    # Don't disable setup auto logon for now.
+    # Disable-SetupAutoLogon
+
     Install-ResumeTask
 
     foreach ($step in $Steps) {
