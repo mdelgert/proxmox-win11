@@ -16,6 +16,7 @@ The project is intentionally small and standalone. It borrows the user-experienc
 - Creates a Windows 11-compatible Proxmox VM with OVMF, Secure Boot-compatible EFI variables, TPM 2.0, Q35, CPU type `host`, and configurable resources.
 - Can automatically start the VM when creation is complete.
 - Reuses already-built Windows media instead of rebuilding it every run.
+- Hands the finished VM to a resumable post-install bootstrap that is hosted on GitHub, so what a new machine installs can change without rebuilding the ISO.
 
 ## Why two ISO modes?
 
@@ -71,10 +72,21 @@ proxmox-win11/
 ├── assets/
 │   ├── README.md
 │   └── autounattend.xml
-└── lib/
-    ├── common.sh
-    ├── build-iso.sh
-    └── create-vm.sh
+├── lib/
+│   ├── common.sh
+│   ├── build-iso.sh
+│   └── create-vm.sh
+└── windows/
+    ├── README.md
+    ├── bootstrap.ps1
+    ├── steps.json
+    └── steps/
+        ├── _lib.ps1
+        ├── 10-baseline.ps1
+        ├── 20-winget.ps1
+        ├── 30-openssh.ps1
+        ├── 40-apps.ps1
+        └── 50-windows-update.ps1
 ```
 
 ## Requirements
@@ -422,6 +434,53 @@ If you change `Autounattend.xml` and need to rebuild the single ISO, remove the 
 
 A future improvement can store a checksum of `Autounattend.xml` and automatically rebuild the single ISO only when the XML changes.
 
+## Post-install customization
+
+Building the VM is only half the job. Everything Windows does to itself after
+the unattended install lives in [`windows/`](windows/README.md), and it is
+fetched from GitHub at run time rather than baked into the ISO.
+
+`assets/autounattend.xml` references a single URL, once:
+
+```text
+https://raw.githubusercontent.com/mdelgert/proxmox-win11/main/windows/bootstrap.ps1
+```
+
+`bootstrap.ps1` is a resumable step runner. It downloads `windows/steps.json`
+and the step scripts it names, runs them in order, and records what finished in
+`C:\ProgramData\Win11Setup\state.json`. A step can ask for a reboot, and the
+run continues at the next step once the machine comes back.
+
+```text
+Autounattend.xml ──► bootstrap.ps1 ──► steps.json ──► steps\*.ps1
+                          ▲                                │
+                          └──── reboot, resume ────────────┘
+```
+
+That gives three things worth having:
+
+- Changing what a new machine installs is a commit, not an ISO rebuild.
+- Installing software that needs a reboot is normal, not a special case.
+- The same script can be run by hand on a machine that is already built, which
+  is how you test a step without creating a VM:
+
+  ```powershell
+  irm https://raw.githubusercontent.com/mdelgert/proxmox-win11/main/windows/bootstrap.ps1 -OutFile $env:TEMP\bootstrap.ps1
+  & $env:TEMP\bootstrap.ps1 -Only 30-openssh
+  ```
+
+The steps that ship here are examples: baseline power settings, winget, an
+OpenSSH server, a few packages, and an optional Windows Update pass. Replace
+them with whatever your machines actually need.
+
+Because the bootstrap drives reboots, two things in `assets/autounattend.xml`
+differ from what the generator produces: `<LogonCount>` is `10`, and the
+generated `FirstLogon.ps1` no longer zeroes `AutoLogonCount`. The bootstrap
+turns autologon off itself when the last step finishes.
+
+See [windows/README.md](windows/README.md) for the step contract, the log and
+state layout, and the debugging commands.
+
 ## Development workflow
 
 For initial development, use Dual ISO mode:
@@ -575,6 +634,7 @@ Not yet implemented:
 - templates / linked clones
 - automated detection that Windows installation has completed
 - CI shell linting
+- pinning the bootstrap hook to a tag or commit instead of `main`
 
 These are good follow-up features after the core installation flow has been tested on multiple Proxmox systems.
 
@@ -593,6 +653,7 @@ Before publishing a `v1.0`, test at least these scenarios:
 9. VM is created with Advanced settings.
 10. Windows completes installation and reboots into `ide0` without re-entering Setup.
 11. Edit `Autounattend.xml`, rerun Dual mode, and verify the new XML is used.
+12. Confirm the post-install bootstrap starts on its own, survives a reboot, and finishes with autologon turned back off.
 
 ## License
 

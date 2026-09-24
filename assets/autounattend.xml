@@ -194,7 +194,7 @@
 			<AutoLogon>
 				<Username>mdelgert</Username>
 				<Enabled>true</Enabled>
-				<LogonCount>1</LogonCount>
+				<LogonCount>10</LogonCount>
 				<Password>
 					<Value>cABAAHMAcwB3ADAAcgBkADIAMAAyADYAIQAwAFAAYQBzAHMAdwBvAHIAZAA=</Value>
 					<PlainText>false</PlainText>
@@ -210,6 +210,11 @@
 				<SynchronousCommand wcm:action="add">
 					<Order>1</Order>
 					<CommandLine>powershell.exe -WindowStyle "Normal" -ExecutionPolicy "Unrestricted" -NoProfile -File "C:\Windows\Setup\Scripts\FirstLogon.ps1"</CommandLine>
+				</SynchronousCommand>
+				<SynchronousCommand wcm:action="add">
+					<Order>2</Order>
+					<Description>Install the resumable post-install bootstrap</Description>
+					<CommandLine>powershell.exe -WindowStyle "Normal" -ExecutionPolicy "Bypass" -NoProfile -Command "Invoke-WebRequest -UseBasicParsing 'https://raw.githubusercontent.com/mdelgert/proxmox-win11/main/windows/bootstrap.ps1' -OutFile 'C:\Windows\Temp\bootstrap.ps1'; C:\Windows\Temp\bootstrap.ps1 -Install"</CommandLine>
 				</SynchronousCommand>
 			</FirstLogonCommands>
 		</component>
@@ -1017,9 +1022,6 @@ $scripts = @(
 		</File>
 		<File path="C:\Windows\Setup\Scripts\FirstLogon.ps1">
 $scripts = @(
-	{
-		Set-ItemProperty -LiteralPath 'Registry::HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon' -Name 'AutoLogonCount' -Type 'DWord' -Force -Value 0;
-	};
 	{
 		Disable-ComputerRestore -Drive 'C:\';
 	};

@@ -1,0 +1,34 @@
+{
+  "version": 1,
+  "files": [
+    "steps/_lib.ps1"
+  ],
+  "steps": [
+    {
+      "id": "10-baseline",
+      "script": "steps/10-baseline.ps1",
+      "description": "Power, sleep and filesystem settings that suit a lab VM"
+    },
+    {
+      "id": "20-winget",
+      "script": "steps/20-winget.ps1",
+      "description": "Make sure winget is present and usable"
+    },
+    {
+      "id": "30-openssh",
+      "script": "steps/30-openssh.ps1",
+      "description": "Install and start the OpenSSH server"
+    },
+    {
+      "id": "40-apps",
+      "script": "steps/40-apps.ps1",
+      "description": "Install applications with winget, then reboot to refresh PATH"
+    },
+    {
+      "id": "50-windows-update",
+      "script": "steps/50-windows-update.ps1",
+      "enabled": false,
+      "description": "Install Windows updates, rebooting between rounds"
+    }
+  ]
+}
