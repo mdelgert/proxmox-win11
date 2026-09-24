@@ -20,9 +20,3 @@ properties:
       settings:
         id: OpenAI.Codex
         source: winget
-
-    - resource: Microsoft.WinGet.DSC/WinGetPackage
-      id: OpenAICodex
-      settings:
-        id: OpenAI.Codex
-        source: winget
