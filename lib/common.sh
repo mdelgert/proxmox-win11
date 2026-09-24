@@ -3,7 +3,7 @@
 # Shared configuration and helper functions.
 
 PROJECT_NAME="Proxmox Windows 11"
-DEFAULT_VM_NAME="win11"
+DEFAULT_VM_NAME="vm-win11"
 DEFAULT_CORES=2
 DEFAULT_MEMORY=16384
 DEFAULT_BALLOON=2048
