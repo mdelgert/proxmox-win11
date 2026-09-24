@@ -61,6 +61,7 @@ $StepsDir = 'windows/steps'
 # A script in windows/steps that is not listed here never runs.
 $Steps = @(
     '010-remove-autologoncount'
+    '015-network-private'
     '020-openssh'
     '020-ssh-keys'    
     '030-update-winget'
@@ -277,7 +278,7 @@ try {
         }
     }
 
-    # Don't disable setup auto logon for now.
+    # Don't disable setup auto logon, move to complete task 999-complete.ps1
     # Disable-SetupAutoLogon
 
     Install-ResumeTask
