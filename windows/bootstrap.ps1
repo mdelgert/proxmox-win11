@@ -66,6 +66,9 @@ $Steps = @(
     '030-update-winget'
     '030-winget-ready'
     '030-winget-configure'
+    '040-git-config'
+    '040-git-repos'
+    '050-vscode-context-menu'
 )
 
 function Write-Log {
