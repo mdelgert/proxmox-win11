@@ -60,17 +60,14 @@ $StepsDir = 'windows/steps'
 # A step is marked complete only after it exits without throwing an error.
 # A script in windows/steps that is not listed here never runs.
 $Steps = @(
-    '010-base'
-    '020-remove-autologoncount'
-    '025-update-winget'
-    '030-winget-ready'
-    '040-winget-baseline'
+    '010-remove-autologoncount'
     '020-openssh'
-    '030-ssh-keys'
-    # '050-apps'
+    '020-ssh-keys'    
+    '030-update-winget'
+    '030-winget-ready'
+    '030-winget-configure'
     '060-reboot-test'
     '070-after-reboot'
-    '999-complete'
 )
 
 function Write-Log {

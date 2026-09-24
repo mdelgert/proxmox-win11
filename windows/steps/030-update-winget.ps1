@@ -2,7 +2,7 @@
 
 $ErrorActionPreference = 'Stop'
 
-Write-Host '025: Ensuring WinGet is registered and ready.'
+Write-Host 'Ensuring WinGet is registered and ready.'
 
 $pkg = Get-AppxPackage -AllUsers Microsoft.DesktopAppInstaller |
     Sort-Object Version -Descending |
@@ -12,7 +12,7 @@ if ($null -eq $pkg) {
     throw 'Microsoft.DesktopAppInstaller is not installed.'
 }
 
-Write-Host "025: Latest installed App Installer: $($pkg.Version)"
+Write-Host "Latest installed App Installer: $($pkg.Version)"
 
 $current = Get-AppxPackage Microsoft.DesktopAppInstaller |
     Sort-Object Version -Descending |
@@ -20,7 +20,7 @@ $current = Get-AppxPackage Microsoft.DesktopAppInstaller |
 
 if (($null -eq $current) -or ($current.Version -ne $pkg.Version)) {
 
-    Write-Host '025: Registering latest App Installer for current user.'
+    Write-Host ' Registering latest App Installer for current user.'
 
     $manifest = Join-Path $pkg.InstallLocation 'AppxManifest.xml'
 
@@ -31,7 +31,7 @@ if (($null -eq $current) -or ($current.Version -ne $pkg.Version)) {
 
 } else {
 
-    Write-Host '025: Latest App Installer already registered.'
+    Write-Host 'Latest App Installer already registered.'
 }
 
 $winget = Get-Command winget.exe -ErrorAction SilentlyContinue
@@ -46,4 +46,4 @@ if ($LASTEXITCODE -ne 0) {
     throw "winget --version failed with exit code $LASTEXITCODE"
 }
 
-Write-Host "025: WinGet ready: $version"
+Write-Host " WinGet ready: $version"

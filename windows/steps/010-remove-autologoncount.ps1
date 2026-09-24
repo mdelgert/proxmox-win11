@@ -2,7 +2,7 @@
 
 $ErrorActionPreference = 'Stop'
 
-Write-Host '020: Waiting for AutoLogonCount...'
+Write-Host 'Waiting for AutoLogonCount...'
 
 $path = 'HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon'
 $name = 'AutoLogonCount'
@@ -19,14 +19,14 @@ for ($attempt = 1; $attempt -le $maxRetries; $attempt++) {
 
     if ($null -ne $item) {
 
-        Write-Host "020: AutoLogonCount found on attempt $attempt."
+        Write-Host "AutoLogonCount found on attempt $attempt."
 
         Remove-ItemProperty `
             -LiteralPath $path `
             -Name $name `
             -Force
 
-        Write-Host '020: AutoLogonCount removed.'
+        Write-Host 'AutoLogonCount removed.'
         return
     }
 
