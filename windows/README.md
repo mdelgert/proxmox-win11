@@ -1149,3 +1149,7 @@ https://github.com/community-scripts/core
 # License
 
 MIT. See [LICENSE](LICENSE).
+
+powershell.exe -NoLogo -NoProfile -ExecutionPolicy Bypass -Command "$u='https://raw.githubusercontent.com/mdelgert/proxmox-win11/main/windows/bootstrap.ps1';$f=\"$env:TEMP\proxmox-win11-bootstrap.ps1\";[Net.ServicePointManager]::SecurityProtocol=[Net.SecurityProtocolType]::Tls12;Invoke-WebRequest -UseBasicParsing -Uri $u -OutFile $f;& powershell.exe -NoLogo -NoProfile -ExecutionPolicy Bypass -File $f"
+
+powershell.exe -NoLogo -NoProfile -ExecutionPolicy Bypass -Command "$u='https://raw.githubusercontent.com/mdelgert/proxmox-win11/main/windows/bootstrap.ps1';$f=\"$env:TEMP\proxmox-win11-bootstrap.ps1\";[Net.ServicePointManager]::SecurityProtocol=[Net.SecurityProtocolType]::Tls12;Invoke-WebRequest -UseBasicParsing -Uri $u -OutFile $f;& powershell.exe -NoLogo -NoProfile -ExecutionPolicy Bypass -File $f -NoReboot"
