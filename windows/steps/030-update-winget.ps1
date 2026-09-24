@@ -47,3 +47,6 @@ if ($LASTEXITCODE -ne 0) {
 }
 
 Write-Host " WinGet ready: $version"
+
+# Request a reboot to ensure all changes take effect.
+Request-Reboot
