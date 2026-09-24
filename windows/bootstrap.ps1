@@ -53,7 +53,7 @@ $Steps = @(
     @{ Name = '010-base'; Path = 'windows/steps/010-base.ps1' }
     @{ Name = '020-remove-autologon'; Path = 'windows/steps/020-remove-autologon.ps1' }
     @{ Name = '030-winget-ready'; Path = 'windows/steps/030-winget-ready.ps1' }
-    @{ Name = '040-winget-test'; Path = 'windows/steps/040-winget-test.ps1' }
+    @{ Name = '040-winget-baseline'; Path = 'windows/steps/040-winget-baseline.ps1' }
     @{ Name = '020-openssh'; Path = 'windows/steps/020-openssh.ps1' }
     @{ Name = '030-ssh-keys'; Path = 'windows/steps/030-ssh-keys.ps1' }
     @{ Name = '040-git'; Path = 'windows/steps/040-git.ps1' }
