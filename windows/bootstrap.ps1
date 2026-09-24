@@ -62,6 +62,7 @@ $StepsDir = 'windows/steps'
 $Steps = @(
     '010-base'
     '020-remove-autologoncount'
+    '025-update-winget'
     '030-winget-ready'
     '040-winget-baseline'
     '020-openssh'
