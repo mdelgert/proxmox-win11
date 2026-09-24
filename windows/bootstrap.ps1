@@ -60,7 +60,7 @@ $StepsDir = 'windows/steps'
 # A step is marked complete only after it exits without throwing an error.
 # A script in windows/steps that is not listed here never runs.
 $Steps = @(
-    # WinGet steps first: they must run as the logged-on user, before any
+    # WinGet steps must run as the logged-on user, before any
     # step reboots and the runner resumes as SYSTEM.
     '010-remove-autologoncount'
     '010-update-winget'
