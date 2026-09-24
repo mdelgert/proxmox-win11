@@ -24,4 +24,6 @@ $bootstrapUrl = 'https://raw.githubusercontent.com/mdelgert/proxmox-win11/main/w
 $bootstrapFile = Join-Path $env:TEMP 'proxmox-win11-bootstrap.ps1'
 
 Invoke-WebRequest -UseBasicParsing -Uri $bootstrapUrl -OutFile $bootstrapFile
-& powershell.exe -NoLogo -NoProfile -ExecutionPolicy Bypass -File $bootstrapFile
+# With UAC on, UserOnce is not elevated. RunAs elevates without a prompt
+# because ConsentPromptBehaviorAdmin is 0 (set in autounattend.xml).
+Start-Process -FilePath 'powershell.exe' -Verb RunAs -Wait -ArgumentList "-NoLogo -NoProfile -ExecutionPolicy Bypass -File `"$bootstrapFile`""
