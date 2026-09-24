@@ -594,6 +594,13 @@ Before publishing a `v1.0`, test at least these scenarios:
 10. Windows completes installation and reboots into `ide0` without re-entering Setup.
 11. Edit `Autounattend.xml`, rerun Dual mode, and verify the new XML is used.
 
+## Default Users
+
+| Username   | Password          |
+|------------|-------------------|
+| mdelgert   | `p@ssw0rd2026!0`  |
+| elgertmd   | `p@ssw0rd2026!1`  |
+
 ## License
 
 MIT. See [LICENSE](LICENSE).

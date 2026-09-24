@@ -433,22 +433,35 @@ The bootstrap contains an ordered list:
 
 ```powershell
 $Steps = @(
-    @{ Name = '010-base';     Path = 'windows/steps/010-base.ps1' },
-    @{ Name = '020-openssh';  Path = 'windows/steps/020-openssh.ps1' },
-    @{ Name = '030-ssh-keys'; Path = 'windows/steps/030-ssh-keys.ps1' }
+    '010-base'
+    '020-openssh'
+    '030-ssh-keys'
 )
 ```
 
-When you are ready to add another step:
+Each entry is one script in `windows/steps` named `<entry>.ps1`. The same
+string is the download URL, the local cache file name, and the `.done` marker
+name, so they cannot drift apart.
+
+Adding a step is a one-line append, with no punctuation to fix on the line
+above:
 
 ```powershell
 $Steps = @(
-    @{ Name = '010-base';    Path = 'windows/steps/010-base.ps1' },
-    @{ Name = '020-openssh'; Path = 'windows/steps/020-openssh.ps1' },
-    @{ Name = '030-winget';  Path = 'windows/steps/030-winget.ps1' },
-    @{ Name = '040-git';     Path = 'windows/steps/040-git.ps1' }
+    '010-base'
+    '020-openssh'
+    '030-ssh-keys'
+    '040-git'
 )
 ```
+
+Two rules follow from this shape:
+
+- **The list decides the order, not the number prefix.** The prefixes are a
+  readability aid so the files sort sensibly on disk. Duplicated numbers are
+  untidy but harmless; the runner never looks at them.
+- **A script in `windows/steps` that is not listed never runs.** Work in
+  progress can sit in the directory safely until you add its line.
 
 Each step is downloaded from GitHub only when it is its turn to run.
 
@@ -1225,11 +1238,16 @@ https://github.com/community-scripts/core
 
 MIT. See [LICENSE](LICENSE).
 
+# Testing the scripts
 
 ```powershell
 
 powershell.exe -NoLogo -NoProfile -ExecutionPolicy Bypass -Command "$u='https://raw.githubusercontent.com/mdelgert/proxmox-win11/main/windows/bootstrap.ps1';$f=\"$env:TEMP\proxmox-win11-bootstrap.ps1\";[Net.ServicePointManager]::SecurityProtocol=[Net.SecurityProtocolType]::Tls12;Invoke-WebRequest -UseBasicParsing -Uri $u -OutFile $f;& powershell.exe -NoLogo -NoProfile -ExecutionPolicy Bypass -File $f"
 
 powershell.exe -NoLogo -NoProfile -ExecutionPolicy Bypass -Command "$u='https://raw.githubusercontent.com/mdelgert/proxmox-win11/main/windows/bootstrap.ps1';$f=\"$env:TEMP\proxmox-win11-bootstrap.ps1\";[Net.ServicePointManager]::SecurityProtocol=[Net.SecurityProtocolType]::Tls12;Invoke-WebRequest -UseBasicParsing -Uri $u -OutFile $f;& powershell.exe -NoLogo -NoProfile -ExecutionPolicy Bypass -File $f -NoReboot"
+
+powershell.exe -NoLogo -NoProfile -ExecutionPolicy Bypass -File "C:\ProgramData\proxmox-win11\cache\025-update-winget.ps1"
+
+powershell.exe -NoLogo -NoProfile -ExecutionPolicy Bypass -Command "$u='https://raw.githubusercontent.com/mdelgert/proxmox-win11/main/windows/steps/025-update-winget.ps1';$f=Join-Path $env:TEMP '025-update-winget.ps1';Invoke-WebRequest -UseBasicParsing -Uri $u -OutFile $f;& powershell.exe -NoLogo -NoProfile -ExecutionPolicy Bypass -File $f"
 
 ```

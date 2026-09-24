@@ -47,20 +47,30 @@ $RebootMarker = Join-Path $StateDir 'reboot.requested'
 $LogFile = Join-Path $LogDir 'customize.log'
 $RawBase = "https://raw.githubusercontent.com/$RepoOwner/$RepoName/$RepoRef"
 
+# Where step scripts live in the repository.
+$StepsDir = 'windows/steps'
+
 # Add customization steps here in the exact order they should run.
+#
+# Each entry is one script name without the .ps1 extension. It is also the
+# name of the step's .done marker, so the script, the URL, and the marker can
+# never disagree. Steps run in this list's order; the number prefix is only a
+# readability aid, not the thing that orders them.
+#
 # A step is marked complete only after it exits without throwing an error.
+# A script in windows/steps that is not listed here never runs.
 $Steps = @(
-    @{ Name = '010-base'; Path = 'windows/steps/010-base.ps1' }
-    @{ Name = '020-remove-autologoncount'; Path = 'windows/steps/020-remove-autologoncount.ps1' }
-    @{ Name = '030-winget-ready'; Path = 'windows/steps/030-winget-ready.ps1' }
-    @{ Name = '040-winget-baseline'; Path = 'windows/steps/040-winget-baseline.ps1' }
-    @{ Name = '020-openssh'; Path = 'windows/steps/020-openssh.ps1' }
-    @{ Name = '030-ssh-keys'; Path = 'windows/steps/030-ssh-keys.ps1' }
-    @{ Name = '040-git'; Path = 'windows/steps/040-git.ps1' }
-    @{ Name = '050-apps'; Path = 'windows/steps/050-apps.ps1' }
-    @{ Name = '060-reboot-test'; Path = 'windows/steps/060-reboot-test.ps1' }
-    @{ Name = '070-after-reboot'; Path = 'windows/steps/070-after-reboot.ps1' }
-    @{ Name = '999-complete'; Path = 'windows/steps/999-complete.ps1' }
+    '010-base'
+    '020-remove-autologoncount'
+    '030-winget-ready'
+    '040-winget-baseline'
+    '020-openssh'
+    '030-ssh-keys'
+    '040-git'
+    '050-apps'
+    '060-reboot-test'
+    '070-after-reboot'
+    '999-complete'
 )
 
 function Write-Log {
@@ -275,12 +285,19 @@ try {
 
     Install-ResumeTask
 
-    foreach ($step in $Steps) {
-        $name = [string]$step.Name
-        $relativePath = [string]$step.Path
+    # A duplicated entry would silently skip on its second appearance, because
+    # the .done marker from the first run already exists. Fail loudly instead.
+    $duplicateSteps = $Steps | Group-Object | Where-Object { $_.Count -gt 1 }
+
+    if ($null -ne $duplicateSteps) {
+        $names = ($duplicateSteps | ForEach-Object { $_.Name }) -join ', '
+        throw "The step list contains duplicate entries: $names"
+    }
+
+    foreach ($name in $Steps) {
         $doneMarker = Join-Path $StateDir "$name.done"
         $localStep = Join-Path $CacheDir "$name.ps1"
-        $stepUrl = "$RawBase/$relativePath"
+        $stepUrl = "$RawBase/$StepsDir/$name.ps1"
 
         if (Test-Path -LiteralPath $doneMarker) {
             Write-Log "Skipping completed step: $name"
