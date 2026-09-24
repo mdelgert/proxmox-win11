@@ -194,7 +194,7 @@
 			<AutoLogon>
 				<Username>mdelgert</Username>
 				<Enabled>true</Enabled>
-				<LogonCount>3</LogonCount>
+				<LogonCount>1</LogonCount>
 				<Password>
 					<Value>cABAAHMAcwB3ADAAcgBkADIAMAAyADYAIQAwAFAAYQBzAHMAdwBvAHIAZAA=</Value>
 					<PlainText>false</PlainText>

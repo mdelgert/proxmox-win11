@@ -1,0 +1,34 @@
+# yaml-language-server: $schema=https://aka.ms/configuration-dsc-schema/0.2
+
+properties:
+  configurationVersion: 0.2.0
+  resources:
+    - resource: Microsoft.WinGet.DSC/WinGetPackage
+      id: VSCode
+      settings:
+        id: Microsoft.VisualStudioCode
+        source: winget
+
+    - resource: Microsoft.WinGet.DSC/WinGetPackage
+      id: Git
+      settings:
+        id: Git.Git
+        source: winget
+
+    - resource: Microsoft.WinGet.DSC/WinGetPackage
+      id: VirtIO
+      settings:
+        id: RedHat.VirtIO
+        source: winget
+
+    - resource: Microsoft.WinGet.DSC/WinGetPackage
+      id: Autologon
+      settings:
+        id: Microsoft.Sysinternals.Autologon
+        source: winget
+
+    - resource: Microsoft.WinGet.DSC/WinGetPackage
+      id: GSUDO
+      settings:
+        id: gerardog.gsudo
+        source: winget
