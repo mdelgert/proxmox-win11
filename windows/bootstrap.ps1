@@ -67,7 +67,6 @@ $Steps = @(
     '030-winget-ready'
     '030-winget-configure'
     '040-git-config'
-    '040-git-repos'
     '050-vscode-context-menu'
 )
 
