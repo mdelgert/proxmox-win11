@@ -31,7 +31,7 @@
 				</RunSynchronousCommand>
 				<RunSynchronousCommand wcm:action="add">
 					<Order>7</Order>
-					<Path>cmd.exe /c &gt;&gt;X:\pe.cmd (echo:for /f ^"tokens=3 delims=.^" ^%^%v in ('ver'^) do (&amp;echo:if ^%^%v LSS 20000 set ^"OS_VERSION=10^"&amp;echo:^)&amp;echo:if defined PEDRIVERS_FOLDER (&amp;echo:call :print ^"Loading drivers from $WinPEDriver$ folder^")</Path>
+					<Path>cmd.exe /c &gt;&gt;X:\pe.cmd (echo:for /f ^"tokens=3 delims=.^" ^%^%v in ('ver'^) do (&amp;echo:if ^%^%v LSS 20000 set ^"OS_VERSION=10^"&amp;echo:^)&amp;echo:if defined PEDRIVERS_FOLDER (&amp;echo:call :print ^"Loading drivers from ^%PEDRIVERS_FOLDER^%^")</Path>
 				</RunSynchronousCommand>
 				<RunSynchronousCommand wcm:action="add">
 					<Order>8</Order>
@@ -107,7 +107,7 @@
 				</RunSynchronousCommand>
 				<RunSynchronousCommand wcm:action="add">
 					<Order>26</Order>
-					<Path>cmd.exe /c &gt;&gt;X:\pe.cmd (echo:call :print ^"Adding drivers from $WinPEDriver$ folder to new installation^"&amp;echo:dism.exe /Add-Driver /Image:W:\ /Driver:^"^%PEDRIVERS_FOLDER^%^" /Recurse&amp;echo:^)&amp;echo:call :print ^"Disabling Windows Defender^")</Path>
+					<Path>cmd.exe /c &gt;&gt;X:\pe.cmd (echo:call :print ^"Adding drivers from ^%PEDRIVERS_FOLDER^% to new installation^"&amp;echo:dism.exe /Add-Driver /Image:W:\ /Driver:^"^%PEDRIVERS_FOLDER^%^" /Recurse&amp;echo:^)&amp;echo:call :print ^"Disabling Windows Defender^")</Path>
 				</RunSynchronousCommand>
 				<RunSynchronousCommand wcm:action="add">
 					<Order>27</Order>
@@ -220,8 +220,8 @@
 	<Extensions xmlns="https://schneegans.de/windows/unattend-generator/">
 		<Build>
 			<Commit>
-				<Hash>538f930aeea9c3d51fdd0b4822e2d076fef999e8</Hash>
-				<GitHubUrl>https://github.com/cschneegans/unattend-generator/commit/538f930aeea9c3d51fdd0b4822e2d076fef999e8</GitHubUrl>
+				<Hash>97c1141d51a9cdae6831107cb3311c2f9eb8121b</Hash>
+				<GitHubUrl>https://github.com/cschneegans/unattend-generator/commit/97c1141d51a9cdae6831107cb3311c2f9eb8121b</GitHubUrl>
 			</Commit>
 			<PEScriptCopy>
 @echo off
@@ -247,7 +247,7 @@ for /f "tokens=3 delims=." %%v in ('ver') do (
 )
 
 if defined PEDRIVERS_FOLDER (
-    call :print "Loading drivers from $WinPEDriver$ folder"
+    call :print "Loading drivers from %PEDRIVERS_FOLDER%"
     for /R %PEDRIVERS_FOLDER% %%f IN (*.inf) do drvload.exe "%%f"
 )
 
@@ -338,7 +338,7 @@ mkdir W:\Windows\Panther
 copy %XML_FILE% W:\Windows\Panther\unattend.xml
 
 if defined PEDRIVERS_FOLDER (
-    call :print "Adding drivers from $WinPEDriver$ folder to new installation"
+    call :print "Adding drivers from %PEDRIVERS_FOLDER% to new installation"
     dism.exe /Add-Driver /Image:W:\ /Driver:"%PEDRIVERS_FOLDER%" /Recurse
 )
 
@@ -368,7 +368,7 @@ echo:
 echo:*** %~1 ***
 echo:
 goto :eof
-		</PEScriptCopy>
+			</PEScriptCopy>
 		</Build>
 		<ExtractScript>
 param(
