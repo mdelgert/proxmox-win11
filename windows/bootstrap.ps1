@@ -63,6 +63,7 @@ $StepsDir = 'windows/steps'
 $Steps = @(
     # WinGet steps must run as the logged-on user, before any
     # step reboots and the runner resumes as SYSTEM.
+    '010-base'
     '010-remove-autologoncount'
     '020-openssh'
     '020-network-private'
