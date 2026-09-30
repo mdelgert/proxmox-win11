@@ -4,8 +4,10 @@ $ErrorActionPreference = 'Stop'
 
 # Add or remove configuration files here.
 $configNames = @(
-    'baseline.dsc.winget'
-    'ai-cli.dsc.winget'
+    'baseline.winget'
+    'ai.winget'
+    'vs.winget'
+    'sms.winget'
 )
 
 foreach ($configName in $configNames) {

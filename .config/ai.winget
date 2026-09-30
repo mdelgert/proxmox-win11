@@ -14,9 +14,3 @@ properties:
       settings:
         id: GitHub.Copilot
         source: winget
-
-    # - resource: Microsoft.WinGet.DSC/WinGetPackage
-    #   id: OpenAICodex
-    #   settings:
-    #     id: OpenAI.Codex
-    #     source: winget

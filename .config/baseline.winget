@@ -16,12 +16,6 @@ properties:
         source: winget
 
     - resource: Microsoft.WinGet.DSC/WinGetPackage
-      id: VirtIO
-      settings:
-        id: RedHat.VirtIO
-        source: winget
-
-    - resource: Microsoft.WinGet.DSC/WinGetPackage
       id: Autologon
       settings:
         id: Microsoft.Sysinternals.Autologon

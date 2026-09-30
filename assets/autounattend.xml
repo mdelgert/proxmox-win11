@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <unattend xmlns="urn:schemas-microsoft-com:unattend" xmlns:wcm="http://schemas.microsoft.com/WMIConfig/2002/State">
-	<!--https://schneegans.de/windows/unattend-generator/?LanguageMode=Unattended&UILanguage=en-US&Locale=en-US&Keyboard=00000409&GeoLocation=244&PEMode=Generated&DisableDefender=true&InstallFromMode=Edition&InstallFromEdition=pro&PartitionMode=Unattended&TargetDiskMode=Generated&TargetDiskIndex=true&TargetDisk=0&PartitionLayout=GPT&SystemSize=300&RecoveryMode=Partition&RecoverySize=1000&PagingFileMode=Automatic&ProcessorArchitecture=amd64&BypassRequirementsCheck=true&KeepSensitiveFiles=true&ComputerNameMode=Custom&ComputerName=vm-win1&TimeZoneMode=Implicit&UserAccountMode=Unattended&AccountName0=mdelgert&AccountDisplayName0=&AccountPassword0=p%40ssw0rd2026%210&AccountGroup0=Administrators&AccountName1=elgertmd&AccountDisplayName1=&AccountPassword1=p%40ssw0rd2026%211&AccountGroup1=Users&AutoLogonMode=Own&ObscurePasswords=true&PasswordExpirationMode=Unlimited&LockoutMode=Default&HideFiles=Hidden&TaskbarSearch=Box&TaskbarIconsMode=Default&DisableWidgets=true&DisableBingResults=true&StartTilesMode=Empty&StartPinsMode=Empty&DisableWindowsUpdate=true&DisableSystemRestore=true&EnableRemoteDesktop=true&AllowPowerShellScripts=true&TurnOffSystemSounds=true&DisableAppSuggestions=true&PreventDeviceEncryption=true&HideEdgeFre=true&DeleteWindowsOld=true&EffectsMode=Performance&DesktopIconsMode=Custom&IconNetwork=true&IconRecycleBin=true&IconThisPC=true&StartFoldersMode=Default&CoreIsolationMode=Disabled&WifiMode=Skip&ExpressSettings=DisableAll&LockKeysMode=Skip&StickyKeysMode=Default&ColorMode=Custom&SystemColorTheme=Dark&AppsColorTheme=Dark&AccentColor=%23000000&WallpaperMode=Script&WallpaperScript=%24url+%3D+%27https%3A%2F%2F4kwallpapers.com%2Fimages%2Fwallpapers%2Fwindows-11-dark-mode-abstract-background-black-background-3840x2160-8710.png%27%3B%0D%0A%26+%7B%0D%0A%09%24ProgressPreference+%3D+%27SilentlyContinue%27%3B%0D%0A%09%28+Invoke-WebRequest+-Uri+%24url+-UseBasicParsing+-TimeoutSec+30+%29.Content%3B%0D%0A%7D%3B&LockScreenMode=Default&Remove3DViewer=true&RemoveBingSearch=true&RemoveCamera=true&RemoveClipchamp=true&RemoveClock=true&RemoveCopilot=true&RemoveCortana=true&RemoveDevHome=true&RemoveWindowsHello=true&RemoveFamily=true&RemoveFeedbackHub=true&RemoveGameAssist=true&RemoveGetHelp=true&RemoveHandwriting=true&RemoveInternetExplorer=true&RemoveMailCalendar=true&RemoveMaps=true&RemoveMathInputPanel=true&RemoveMediaFeatures=true&RemoveMixedReality=true&RemoveZuneVideo=true&RemoveNews=true&RemoveOffice365=true&RemoveOneDrive=true&RemoveOneNote=true&RemoveOneSync=true&RemoveOutlook=true&RemovePaint3D=true&RemovePeople=true&RemovePhotos=true&RemovePowerAutomate=true&RemoveQuickAssist=true&RemoveRecall=true&RemoveSkype=true&RemoveSnippingTool=true&RemoveSolitaire=true&RemoveSpeech=true&RemoveStepsRecorder=true&RemoveStickyNotes=true&RemoveTeams=true&RemoveGetStarted=true&RemoveToDo=true&RemoveVoiceRecorder=true&RemoveWallet=true&RemoveWeather=true&RemoveWindowsMediaPlayer=true&RemoveZuneMusic=true&RemoveXboxApps=true&RemoveYourPhone=true&SystemScript0=%23+Paste+this+script+into+the+Unattend+Generator%27s+%22System%22+script+section%2C+so%0D%0A%23+it+runs+as+SYSTEM+during+the+specialize+pass%2C+before+the+first+user+logon.%0D%0A%23%0D%0A%23+Why+this+exists%3A%0D%0A%23+++UserOnce+runs+under+the+logged-on+user%27s+%2Anon-elevated%2A+token%2C+even+when%0D%0A%23+++that+user+is+a+member+of+Administrators.+windows%2FUserOnce.ps1+therefore%0D%0A%23+++calls+%22Start-Process+-Verb+RunAs%22+to+launch+the+bootstrap+elevated.+With%0D%0A%23+++default+UAC+settings+that+raises+a+consent+dialog+on+the+secure+desktop%2C+and%0D%0A%23+++the+first+logon+is+unattended%2C+so+nobody+is+there+to+click+%22Yes%22+-+the%0D%0A%23+++bootstrap+silently+never+starts.%0D%0A%23%0D%0A%23+++ConsentPromptBehaviorAdmin+%3D+0+means+%22elevate+without+prompting%22+for%0D%0A%23+++administrators%2C+which+makes+that+RunAs+succeed+unattended.%0D%0A%23%0D%0A%23+EnableLUA+is+deliberately+left+at+1.+Turning+UAC+off+entirely+breaks+Appx+and%0D%0A%23+Store+servicing%2C+which+the+WinGet+bootstrap+steps+depend+on.%0D%0A%23%0D%0A%23+The+weakened+setting+is+needed+for+exactly+one+launch.+Every+later+resume%0D%0A%23+comes+from+the+SYSTEM+startup+task%2C+which+does+not+need+UAC+at+all%2C+so%0D%0A%23+windows%2Fbootstrap.ps1+restores+the+Windows+default+%285%29+as+soon+as+that+task+is%0D%0A%23+registered+-+before+any+customization+step+runs.+A+failed+or+abandoned+run%0D%0A%23+therefore+cannot+leave+the+machine+with+prompt-free+elevation.%0D%0A%0D%0A%24ErrorActionPreference+%3D+%27Stop%27%0D%0A%0D%0A%24key+%3D+%27HKLM%5CSOFTWARE%5CMicrosoft%5CWindows%5CCurrentVersion%5CPolicies%5CSystem%27%0D%0A%0D%0Areg.exe+add+%24key+%2Fv+ConsentPromptBehaviorAdmin+%2Ft+REG_DWORD+%2Fd+0+%2Ff%0D%0A&SystemScriptType0=Ps1&UserOnceScript0=%23+Paste+this+script+into+the+Unattend+Generator%27s+%22UserOnce%22+section.%0D%0A%23+It+is+intentionally+small+and+stable%3A+its+only+job+is+to+download+and+run%0D%0A%23+the+public+customization+bootstrap+from+this+repository.%0D%0A%23%0D%0A%23+The+bootstrap+then+owns+logging%2C+resume-after-reboot%2C+step+state%2C+and+cleanup.%0D%0A%0D%0A%24ErrorActionPreference+%3D+%27Stop%27%0D%0A%24ProgressPreference+%3D+%27SilentlyContinue%27%0D%0A%0D%0A%24workRoot+%3D+Join-Path+%24env%3AProgramData+%27proxmox-win11%27%0D%0A%24completeMarker+%3D+Join-Path+%24workRoot+%27complete.marker%27%0D%0A%0D%0A%23+UserOnce+can+run+for+another+newly-created+user+later.+Once+machine%0D%0A%23+customization+is+complete%2C+do+nothing.%0D%0Aif+%28Test-Path+-LiteralPath+%24completeMarker%29+%7B%0D%0A++++return%0D%0A%7D%0D%0A%0D%0A%23+Windows+PowerShell+5.1+is+available+on+a+fresh+Windows+11+installation.%0D%0A%23+Force+TLS+1.2+for+older+Windows+PowerShell+web+requests.%0D%0A%5BNet.ServicePointManager%5D%3A%3ASecurityProtocol+%3D+%5BNet.SecurityProtocolType%5D%3A%3ATls12%0D%0A%0D%0A%24bootstrapUrl+%3D+%27https%3A%2F%2Fraw.githubusercontent.com%2Fmdelgert%2Fproxmox-win11%2Fmain%2Fwindows%2Fbootstrap.ps1%27%0D%0A%24bootstrapFile+%3D+Join-Path+%24env%3ATEMP+%27proxmox-win11-bootstrap.ps1%27%0D%0A%0D%0AInvoke-WebRequest+-UseBasicParsing+-Uri+%24bootstrapUrl+-OutFile+%24bootstrapFile%0D%0A%23+UserOnce+runs+under+the+user%27s+non-elevated+token.+RunAs+elevates+without+a%0D%0A%23+consent+dialog+because+the+specialize+pass+set+ConsentPromptBehaviorAdmin+to+0%0D%0A%23+%28see+windows%2FSpecializeUac.ps1%29.%0D%0AStart-Process+-FilePath+%27powershell.exe%27+-Verb+RunAs+-Wait+-ArgumentList+%22-NoLogo+-NoProfile+-ExecutionPolicy+Bypass+-File+%60%22%24bootstrapFile%60%22%22%0D%0A&UserOnceScriptType0=Ps1&AppLockerMode=Skip-->
+	<!--https://schneegans.de/windows/unattend-generator/?LanguageMode=Unattended&UILanguage=en-US&Locale=en-US&Keyboard=00000409&GeoLocation=244&PEMode=Generated&DisableDefender=true&InstallFromMode=Edition&InstallFromEdition=pro&PartitionMode=Unattended&TargetDiskMode=Generated&TargetDiskIndex=true&TargetDisk=0&PartitionLayout=GPT&SystemSize=300&RecoveryMode=Partition&RecoverySize=1000&PagingFileMode=Automatic&ProcessorArchitecture=amd64&BypassRequirementsCheck=true&KeepSensitiveFiles=true&ComputerNameMode=Custom&ComputerName=vm-win1&TimeZoneMode=Implicit&UserAccountMode=Unattended&AccountName0=mdelgert&AccountDisplayName0=&AccountPassword0=p%40ssw0rd2026%210&AccountGroup0=Administrators&AccountName1=elgertmd&AccountDisplayName1=&AccountPassword1=p%40ssw0rd2026%211&AccountGroup1=Users&AutoLogonMode=Own&ObscurePasswords=true&PasswordExpirationMode=Unlimited&LockoutMode=Default&HideFiles=None&ShowFileExtensions=true&TaskbarSearch=Hide&TaskbarIconsMode=Default&DisableWidgets=true&DisableBingResults=true&StartTilesMode=Empty&StartPinsMode=Empty&DisableWindowsUpdate=true&DisableSystemRestore=true&EnableRemoteDesktop=true&AllowPowerShellScripts=true&TurnOffSystemSounds=true&DisableAppSuggestions=true&PreventDeviceEncryption=true&HideEdgeFre=true&DeleteWindowsOld=true&EffectsMode=Performance&DesktopIconsMode=Custom&IconNetwork=true&IconRecycleBin=true&IconThisPC=true&StartFoldersMode=Default&CoreIsolationMode=Disabled&VirtIoGuestTools=true&WifiMode=Skip&ExpressSettings=DisableAll&LockKeysMode=Skip&StickyKeysMode=Default&ColorMode=Custom&SystemColorTheme=Dark&AppsColorTheme=Dark&AccentColor=%23000000&WallpaperMode=Script&WallpaperScript=%24url+%3D+%27https%3A%2F%2F4kwallpapers.com%2Fimages%2Fwallpapers%2Fwindows-11-dark-mode-abstract-background-black-background-3840x2160-8710.png%27%3B%0D%0A%26+%7B%0D%0A%09%24ProgressPreference+%3D+%27SilentlyContinue%27%3B%0D%0A%09%28+Invoke-WebRequest+-Uri+%24url+-UseBasicParsing+-TimeoutSec+30+%29.Content%3B%0D%0A%7D%3B&LockScreenMode=Default&Remove3DViewer=true&RemoveBingSearch=true&RemoveClipchamp=true&RemoveClock=true&RemoveCopilot=true&RemoveCortana=true&RemoveDevHome=true&RemoveWindowsHello=true&RemoveFamily=true&RemoveFeedbackHub=true&RemoveGameAssist=true&RemoveGetHelp=true&RemoveHandwriting=true&RemoveInternetExplorer=true&RemoveMailCalendar=true&RemoveMaps=true&RemoveMathInputPanel=true&RemoveMediaFeatures=true&RemoveMixedReality=true&RemoveZuneVideo=true&RemoveNews=true&RemoveOffice365=true&RemoveOneDrive=true&RemoveOneNote=true&RemoveOneSync=true&RemoveOutlook=true&RemovePaint3D=true&RemovePeople=true&RemovePhotos=true&RemovePowerAutomate=true&RemoveQuickAssist=true&RemoveRecall=true&RemoveSkype=true&RemoveSolitaire=true&RemoveSpeech=true&RemoveStepsRecorder=true&RemoveStickyNotes=true&RemoveTeams=true&RemoveGetStarted=true&RemoveToDo=true&RemoveWallet=true&RemoveWeather=true&RemoveWindowsMediaPlayer=true&RemoveZuneMusic=true&RemoveXboxApps=true&RemoveYourPhone=true&SystemScript0=%23+Paste+this+script+into+the+Unattend+Generator%27s+%22System%22+script+section%2C+so%0D%0A%23+it+runs+as+SYSTEM+during+the+specialize+pass%2C+before+the+first+user+logon.%0D%0A%23%0D%0A%23+Why+this+exists%3A%0D%0A%23+++UserOnce+runs+under+the+logged-on+user%27s+*non-elevated*+token%2C+even+when%0D%0A%23+++that+user+is+a+member+of+Administrators.+windows%2FUserOnce.ps1+therefore%0D%0A%23+++calls+%22Start-Process+-Verb+RunAs%22+to+launch+the+bootstrap+elevated.+With%0D%0A%23+++default+UAC+settings+that+raises+a+consent+dialog+on+the+secure+desktop%2C+and%0D%0A%23+++the+first+logon+is+unattended%2C+so+nobody+is+there+to+click+%22Yes%22+-+the%0D%0A%23+++bootstrap+silently+never+starts.%0D%0A%23%0D%0A%23+++ConsentPromptBehaviorAdmin+%3D+0+means+%22elevate+without+prompting%22+for%0D%0A%23+++administrators%2C+which+makes+that+RunAs+succeed+unattended.%0D%0A%23%0D%0A%23+EnableLUA+is+deliberately+left+at+1.+Turning+UAC+off+entirely+breaks+Appx+and%0D%0A%23+Store+servicing%2C+which+the+WinGet+bootstrap+steps+depend+on.%0D%0A%23%0D%0A%23+The+weakened+setting+is+needed+for+exactly+one+launch.+Every+later+resume%0D%0A%23+comes+from+the+SYSTEM+startup+task%2C+which+does+not+need+UAC+at+all%2C+so%0D%0A%23+windows%2Fbootstrap.ps1+restores+the+Windows+default+%285%29+as+soon+as+that+task+is%0D%0A%23+registered+-+before+any+customization+step+runs.+A+failed+or+abandoned+run%0D%0A%23+therefore+cannot+leave+the+machine+with+prompt-free+elevation.%0D%0A%0D%0A%24ErrorActionPreference+%3D+%27Stop%27%0D%0A%0D%0A%24key+%3D+%27HKLM%5CSOFTWARE%5CMicrosoft%5CWindows%5CCurrentVersion%5CPolicies%5CSystem%27%0D%0A%0D%0Areg.exe+add+%24key+%2Fv+ConsentPromptBehaviorAdmin+%2Ft+REG_DWORD+%2Fd+0+%2Ff%0D%0A&SystemScriptType0=Ps1&UserOnceScript0=%23+Paste+this+script+into+the+Unattend+Generator%27s+%22UserOnce%22+section.%0D%0A%23+It+is+intentionally+small+and+stable%3A+its+only+job+is+to+download+and+run%0D%0A%23+the+public+customization+bootstrap+from+this+repository.%0D%0A%23%0D%0A%23+The+bootstrap+then+owns+logging%2C+resume-after-reboot%2C+step+state%2C+and+cleanup.%0D%0A%0D%0A%24ErrorActionPreference+%3D+%27Stop%27%0D%0A%24ProgressPreference+%3D+%27SilentlyContinue%27%0D%0A%0D%0A%24workRoot+%3D+Join-Path+%24env%3AProgramData+%27proxmox-win11%27%0D%0A%24completeMarker+%3D+Join-Path+%24workRoot+%27complete.marker%27%0D%0A%0D%0A%23+UserOnce+can+run+for+another+newly-created+user+later.+Once+machine%0D%0A%23+customization+is+complete%2C+do+nothing.%0D%0Aif+%28Test-Path+-LiteralPath+%24completeMarker%29+%7B%0D%0A++++return%0D%0A%7D%0D%0A%0D%0A%23+Windows+PowerShell+5.1+is+available+on+a+fresh+Windows+11+installation.%0D%0A%23+Force+TLS+1.2+for+older+Windows+PowerShell+web+requests.%0D%0A%5BNet.ServicePointManager%5D%3A%3ASecurityProtocol+%3D+%5BNet.SecurityProtocolType%5D%3A%3ATls12%0D%0A%0D%0A%24bootstrapUrl+%3D+%27https%3A%2F%2Fraw.githubusercontent.com%2Fmdelgert%2Fproxmox-win11%2Fmain%2Fwindows%2Fbootstrap.ps1%27%0D%0A%24bootstrapFile+%3D+Join-Path+%24env%3ATEMP+%27proxmox-win11-bootstrap.ps1%27%0D%0A%0D%0AInvoke-WebRequest+-UseBasicParsing+-Uri+%24bootstrapUrl+-OutFile+%24bootstrapFile%0D%0A%23+UserOnce+runs+under+the+user%27s+non-elevated+token.+RunAs+elevates+without+a%0D%0A%23+consent+dialog+because+the+specialize+pass+set+ConsentPromptBehaviorAdmin+to+0%0D%0A%23+%28see+windows%2FSpecializeUac.ps1%29.%0D%0AStart-Process+-FilePath+%27powershell.exe%27+-Verb+RunAs+-Wait+-ArgumentList+%22-NoLogo+-NoProfile+-ExecutionPolicy+Bypass+-File+%60%22%24bootstrapFile%60%22%22%0D%0A&UserOnceScriptType0=Ps1&AppLockerMode=Skip-->
 	<settings pass="offlineServicing"></settings>
 	<settings pass="windowsPE">
 		<component name="Microsoft-Windows-Setup" processorArchitecture="amd64" publicKeyToken="31bf3856ad364e35" language="neutral" versionScope="nonSxS">
@@ -19,7 +19,7 @@
 				</RunSynchronousCommand>
 				<RunSynchronousCommand wcm:action="add">
 					<Order>4</Order>
-					<Path>cmd.exe /c &gt;&gt;X:\pe.cmd (echo:if exist ^%^%d:\$OEM$ set ^"OEM_FOLDER=^%^%d:\$OEM$^"&amp;echo:if exist ^%^%d:\$WinPEDriver$ set ^"PEDRIVERS_FOLDER=^%^%d:\$WinPEDriver$^"&amp;echo:^))</Path>
+					<Path>cmd.exe /c &gt;&gt;X:\pe.cmd (echo:if exist ^%^%d:\$OEM$ set ^"OEM_FOLDER=^%^%d:\$OEM$^"&amp;echo:if exist ^%^%d:\$WinPEDriver$ set ^"PEDRIVERS_FOLDER=^%^%d:\$WinPEDriver$^"&amp;echo:if exist ^%^%d:\virtio-win-guest-tools.exe set ^"VIRTIO_DRIVE=^%^%d:^"&amp;echo:^))</Path>
 				</RunSynchronousCommand>
 				<RunSynchronousCommand wcm:action="add">
 					<Order>5</Order>
@@ -35,98 +35,118 @@
 				</RunSynchronousCommand>
 				<RunSynchronousCommand wcm:action="add">
 					<Order>8</Order>
-					<Path>cmd.exe /c &gt;&gt;X:\pe.cmd (echo:for /R ^%PEDRIVERS_FOLDER^% ^%^%f IN (*.inf^) do drvload.exe ^"^%^%f^"&amp;echo:^)&amp;echo:^&gt;X:\target.vbs (&amp;echo:echo:Function Fail(message^^^)&amp;echo:echo:WScript.Echo message&amp;echo:echo:WScript.Quit 1&amp;echo:echo:End Function)</Path>
+					<Path>cmd.exe /c &gt;&gt;X:\pe.cmd (echo:for /R ^%PEDRIVERS_FOLDER^% ^%^%f IN (*.inf^) do drvload.exe ^"^%^%f^"&amp;echo:^)&amp;echo:if defined VIRTIO_DRIVE (&amp;echo:call :print ^"Loading VirtIO drivers from ^%VIRTIO_DRIVE^%^")</Path>
 				</RunSynchronousCommand>
 				<RunSynchronousCommand wcm:action="add">
 					<Order>9</Order>
-					<Path>cmd.exe /c &gt;&gt;X:\pe.cmd (echo:echo:On Error Resume Next&amp;echo:echo:Set wmi = GetObject(^^^"winmgmts:\\.\root\cimv2^^^"^^^)&amp;echo:echo:Set drives = wmi.InstancesOf(^^^"Win32_DiskDrive^^^"^^^)&amp;echo:echo:If Err.Number ^^^&lt;^^^&gt; 0 Then)</Path>
+					<Path>cmd.exe /c &gt;&gt;X:\pe.cmd (echo:drvload.exe ^"^%VIRTIO_DRIVE^%\vioscsi\w^%OS_VERSION^%\^%PROCESSOR_ARCHITECTURE^%\vioscsi.inf^"&amp;echo:drvload.exe ^"^%VIRTIO_DRIVE^%\viostor\w^%OS_VERSION^%\^%PROCESSOR_ARCHITECTURE^%\viostor.inf^")</Path>
 				</RunSynchronousCommand>
 				<RunSynchronousCommand wcm:action="add">
 					<Order>10</Order>
-					<Path>cmd.exe /c &gt;&gt;X:\pe.cmd (echo:echo:Fail ^^^"Could not enumerate disks: ^^^" ^^^&amp; Err.Description&amp;echo:echo:End If&amp;echo:echo:Set accepted = CreateObject(^^^"Scripting.Dictionary^^^"^^^)&amp;echo:echo:For Each drive In drives&amp;echo:echo:accept = True)</Path>
+					<Path>cmd.exe /c &gt;&gt;X:\pe.cmd (echo:drvload.exe ^"^%VIRTIO_DRIVE^%\NetKVM\w^%OS_VERSION^%\^%PROCESSOR_ARCHITECTURE^%\netkvm.inf^"&amp;echo:^)&amp;echo:^&gt;X:\target.vbs (&amp;echo:echo:Function Fail(message^^^)&amp;echo:echo:WScript.Echo message&amp;echo:echo:WScript.Quit 1)</Path>
 				</RunSynchronousCommand>
 				<RunSynchronousCommand wcm:action="add">
 					<Order>11</Order>
-					<Path>cmd.exe /c &gt;&gt;X:\pe.cmd (echo:echo:actual = drive.Index&amp;echo:echo:expected = 0&amp;echo:echo:If actual ^^^&lt;^^^&gt; expected Then&amp;echo:echo:accept = False&amp;echo:echo:End If&amp;echo:echo:If accept Then&amp;echo:echo:accepted.Add drive.Index, ^^^"^^^"&amp;echo:echo:End If)</Path>
+					<Path>cmd.exe /c &gt;&gt;X:\pe.cmd (echo:echo:End Function&amp;echo:echo:On Error Resume Next&amp;echo:echo:Set wmi = GetObject(^^^"winmgmts:\\.\root\cimv2^^^"^^^)&amp;echo:echo:Set drives = wmi.InstancesOf(^^^"Win32_DiskDrive^^^"^^^)&amp;echo:echo:If Err.Number ^^^&lt;^^^&gt; 0 Then)</Path>
 				</RunSynchronousCommand>
 				<RunSynchronousCommand wcm:action="add">
 					<Order>12</Order>
-					<Path>cmd.exe /c &gt;&gt;X:\pe.cmd (echo:echo:Next&amp;echo:echo:If accepted.Count = 0 Then&amp;echo:echo:Fail ^^^"No disk satisfied the given criteria.^^^"&amp;echo:echo:ElseIf accepted.Count ^^^&gt; 1 Then)</Path>
+					<Path>cmd.exe /c &gt;&gt;X:\pe.cmd (echo:echo:Fail ^^^"Could not enumerate disks: ^^^" ^^^&amp; Err.Description&amp;echo:echo:End If&amp;echo:echo:Set accepted = CreateObject(^^^"Scripting.Dictionary^^^"^^^)&amp;echo:echo:For Each drive In drives&amp;echo:echo:accept = True)</Path>
 				</RunSynchronousCommand>
 				<RunSynchronousCommand wcm:action="add">
 					<Order>13</Order>
-					<Path>cmd.exe /c &gt;&gt;X:\pe.cmd (echo:echo:Fail ^^^"Several disks (^^^" ^^^&amp; Join(accepted.Keys, ^^^", ^^^"^^^) ^^^&amp; ^^^"^^^) satisfied the given criteria.^^^"&amp;echo:echo:Else&amp;echo:echo:WScript.Echo Join(accepted.Keys^^^)&amp;echo:echo:WScript.Quit 0&amp;echo:echo:End If)</Path>
+					<Path>cmd.exe /c &gt;&gt;X:\pe.cmd (echo:echo:actual = drive.Index&amp;echo:echo:expected = 0&amp;echo:echo:If actual ^^^&lt;^^^&gt; expected Then&amp;echo:echo:accept = False&amp;echo:echo:End If&amp;echo:echo:If accept Then&amp;echo:echo:accepted.Add drive.Index, ^^^"^^^"&amp;echo:echo:End If)</Path>
 				</RunSynchronousCommand>
 				<RunSynchronousCommand wcm:action="add">
 					<Order>14</Order>
-					<Path>cmd.exe /c &gt;&gt;X:\pe.cmd (echo:^)&amp;echo:call :print ^"Determining target disk^")</Path>
+					<Path>cmd.exe /c &gt;&gt;X:\pe.cmd (echo:echo:Next&amp;echo:echo:If accepted.Count = 0 Then&amp;echo:echo:Fail ^^^"No disk satisfied the given criteria.^^^"&amp;echo:echo:ElseIf accepted.Count ^^^&gt; 1 Then)</Path>
 				</RunSynchronousCommand>
 				<RunSynchronousCommand wcm:action="add">
 					<Order>15</Order>
-					<Path>cmd.exe /c &gt;&gt;X:\pe.cmd (echo:(cscript.exe //E:vbscript ^"X:\target.vbs^" //Nologo ^&gt;X:\target.out^) ^|^| (type X:\target.out ^&amp; call :fail ^"Could not determine target disk. Windows Setup will halt to avoid potential data loss.^"^))</Path>
+					<Path>cmd.exe /c &gt;&gt;X:\pe.cmd (echo:echo:Fail ^^^"Several disks (^^^" ^^^&amp; Join(accepted.Keys, ^^^", ^^^"^^^) ^^^&amp; ^^^"^^^) satisfied the given criteria.^^^"&amp;echo:echo:Else&amp;echo:echo:WScript.Echo Join(accepted.Keys^^^)&amp;echo:echo:WScript.Quit 0&amp;echo:echo:End If)</Path>
 				</RunSynchronousCommand>
 				<RunSynchronousCommand wcm:action="add">
 					<Order>16</Order>
-					<Path>cmd.exe /c &gt;&gt;X:\pe.cmd (echo:for /f ^%^%t in (X:\target.out^) do set ^"TARGET_DISK=^%^%t^"&amp;echo:wpeutil.exe UpdateBootInfo&amp;echo:for /f ^"tokens=3^" ^%^%t in ('reg.exe query HKLM\System\CurrentControlSet\Control /v PEFirmwareType'^) do ()</Path>
+					<Path>cmd.exe /c &gt;&gt;X:\pe.cmd (echo:^)&amp;echo:call :print ^"Determining target disk^")</Path>
 				</RunSynchronousCommand>
 				<RunSynchronousCommand wcm:action="add">
 					<Order>17</Order>
-					<Path>cmd.exe /c &gt;&gt;X:\pe.cmd (echo:if ^%^%t == 0x1 (&amp;echo:set ^"LAYOUT=MBR^"&amp;echo:set ^"FIRMWARE=BIOS^"&amp;echo:^) else if ^%^%t == 0x2 (&amp;echo:set ^"LAYOUT=GPT^"&amp;echo:set ^"FIRMWARE=UEFI^"&amp;echo:^) else (&amp;echo:call :fail ^"Unexpected PEFirmwareType value ^%^%t.^")</Path>
+					<Path>cmd.exe /c &gt;&gt;X:\pe.cmd (echo:(cscript.exe //E:vbscript ^"X:\target.vbs^" //Nologo ^&gt;X:\target.out^) ^|^| (type X:\target.out ^&amp; call :fail ^"Could not determine target disk. Windows Setup will halt to avoid potential data loss.^"^))</Path>
 				</RunSynchronousCommand>
 				<RunSynchronousCommand wcm:action="add">
 					<Order>18</Order>
-					<Path>cmd.exe /c &gt;&gt;X:\pe.cmd (echo:^)&amp;echo:^)&amp;echo:call :print ^"The computer is booted in ^%FIRMWARE^% mode, hence the target disk must be configured with the ^%LAYOUT^% partition layout^"&amp;echo:^&gt;X:\diskpart.txt (&amp;echo:echo:SELECT DISK=^%TARGET_DISK^%)</Path>
+					<Path>cmd.exe /c &gt;&gt;X:\pe.cmd (echo:for /f ^%^%t in (X:\target.out^) do set ^"TARGET_DISK=^%^%t^"&amp;echo:wpeutil.exe UpdateBootInfo&amp;echo:for /f ^"tokens=3^" ^%^%t in ('reg.exe query HKLM\System\CurrentControlSet\Control /v PEFirmwareType'^) do ()</Path>
 				</RunSynchronousCommand>
 				<RunSynchronousCommand wcm:action="add">
 					<Order>19</Order>
-					<Path>cmd.exe /c &gt;&gt;X:\pe.cmd (echo:echo:CLEAN&amp;echo:echo:CONVERT GPT&amp;echo:echo:CREATE PARTITION EFI SIZE=300&amp;echo:echo:FORMAT QUICK FS=FAT32 LABEL=^"System^"&amp;echo:echo:ASSIGN LETTER=S&amp;echo:echo:CREATE PARTITION MSR SIZE=16&amp;echo:echo:CREATE PARTITION PRIMARY)</Path>
+					<Path>cmd.exe /c &gt;&gt;X:\pe.cmd (echo:if ^%^%t == 0x1 (&amp;echo:set ^"LAYOUT=MBR^"&amp;echo:set ^"FIRMWARE=BIOS^"&amp;echo:^) else if ^%^%t == 0x2 (&amp;echo:set ^"LAYOUT=GPT^"&amp;echo:set ^"FIRMWARE=UEFI^"&amp;echo:^) else (&amp;echo:call :fail ^"Unexpected PEFirmwareType value ^%^%t.^")</Path>
 				</RunSynchronousCommand>
 				<RunSynchronousCommand wcm:action="add">
 					<Order>20</Order>
-					<Path>cmd.exe /c &gt;&gt;X:\pe.cmd (echo:echo:SHRINK MINIMUM=1000&amp;echo:echo:FORMAT QUICK FS=NTFS LABEL=^"Windows^"&amp;echo:echo:ASSIGN LETTER=W&amp;echo:echo:CREATE PARTITION PRIMARY&amp;echo:echo:FORMAT QUICK FS=NTFS LABEL=^"Recovery^"&amp;echo:echo:ASSIGN LETTER=R)</Path>
+					<Path>cmd.exe /c &gt;&gt;X:\pe.cmd (echo:^)&amp;echo:^)&amp;echo:call :print ^"The computer is booted in ^%FIRMWARE^% mode, hence the target disk must be configured with the ^%LAYOUT^% partition layout^"&amp;echo:^&gt;X:\diskpart.txt (&amp;echo:echo:SELECT DISK=^%TARGET_DISK^%)</Path>
 				</RunSynchronousCommand>
 				<RunSynchronousCommand wcm:action="add">
 					<Order>21</Order>
-					<Path>cmd.exe /c &gt;&gt;X:\pe.cmd (echo:echo:SET ID=^"de94bba4-06d1-4d40-a16a-bfd50179d6ac^"&amp;echo:echo:GPT ATTRIBUTES=0x8000000000000001&amp;echo:^)&amp;echo:call :print ^"diskpart will now wipe, partition and format disk ^%TARGET_DISK^%^")</Path>
+					<Path>cmd.exe /c &gt;&gt;X:\pe.cmd (echo:echo:CLEAN&amp;echo:echo:CONVERT GPT&amp;echo:echo:CREATE PARTITION EFI SIZE=300&amp;echo:echo:FORMAT QUICK FS=FAT32 LABEL=^"System^"&amp;echo:echo:ASSIGN LETTER=S&amp;echo:echo:CREATE PARTITION MSR SIZE=16&amp;echo:echo:CREATE PARTITION PRIMARY)</Path>
 				</RunSynchronousCommand>
 				<RunSynchronousCommand wcm:action="add">
 					<Order>22</Order>
-					<Path>cmd.exe /c &gt;&gt;X:\pe.cmd (echo:diskpart.exe /s X:\diskpart.txt ^|^| call :fail ^"diskpart.exe encountered an error.^"&amp;echo:set ^"IMG_PARAM=/Name:^"Windows ^%OS_VERSION^% Pro^"^"&amp;echo:call :print ^"Applying Windows image to target disk^")</Path>
+					<Path>cmd.exe /c &gt;&gt;X:\pe.cmd (echo:echo:SHRINK MINIMUM=1000&amp;echo:echo:FORMAT QUICK FS=NTFS LABEL=^"Windows^"&amp;echo:echo:ASSIGN LETTER=W&amp;echo:echo:CREATE PARTITION PRIMARY&amp;echo:echo:FORMAT QUICK FS=NTFS LABEL=^"Recovery^"&amp;echo:echo:ASSIGN LETTER=R)</Path>
 				</RunSynchronousCommand>
 				<RunSynchronousCommand wcm:action="add">
 					<Order>23</Order>
-					<Path>cmd.exe /c &gt;&gt;X:\pe.cmd (echo:dism.exe /Apply-Image /ImageFile:^%IMAGE_FILE^% ^%SWM_PARAM^% ^%IMG_PARAM^% /ApplyDir:W:\ /CheckIntegrity /Verify ^|^| call :fail ^"dism.exe encountered an error.^"&amp;echo:call :print ^"Making system partition bootable^")</Path>
+					<Path>cmd.exe /c &gt;&gt;X:\pe.cmd (echo:echo:SET ID=^"de94bba4-06d1-4d40-a16a-bfd50179d6ac^"&amp;echo:echo:GPT ATTRIBUTES=0x8000000000000001&amp;echo:^)&amp;echo:call :print ^"diskpart will now wipe, partition and format disk ^%TARGET_DISK^%^")</Path>
 				</RunSynchronousCommand>
 				<RunSynchronousCommand wcm:action="add">
 					<Order>24</Order>
-					<Path>cmd.exe /c &gt;&gt;X:\pe.cmd (echo:bcdboot.exe W:\Windows /s S: ^|^| call :fail ^"bcdboot.exe encountered an error.^"&amp;echo:if ^%LAYOUT^% == GPT (&amp;echo:bcdedit.exe /set {fwbootmgr} bootsequence {bootmgr} ^|^| call :fail ^"bcdedit.exe encountered an error.^")</Path>
+					<Path>cmd.exe /c &gt;&gt;X:\pe.cmd (echo:diskpart.exe /s X:\diskpart.txt ^|^| call :fail ^"diskpart.exe encountered an error.^"&amp;echo:set ^"IMG_PARAM=/Name:^"Windows ^%OS_VERSION^% Pro^"^"&amp;echo:call :print ^"Applying Windows image to target disk^")</Path>
 				</RunSynchronousCommand>
 				<RunSynchronousCommand wcm:action="add">
 					<Order>25</Order>
-					<Path>cmd.exe /c &gt;&gt;X:\pe.cmd (echo:^)&amp;echo:call :print ^"Copying answer file to target disk^"&amp;echo:mkdir W:\Windows\Panther&amp;echo:copy ^%XML_FILE^% W:\Windows\Panther\unattend.xml&amp;echo:if defined PEDRIVERS_FOLDER ()</Path>
+					<Path>cmd.exe /c &gt;&gt;X:\pe.cmd (echo:dism.exe /Apply-Image /ImageFile:^%IMAGE_FILE^% ^%SWM_PARAM^% ^%IMG_PARAM^% /ApplyDir:W:\ /CheckIntegrity /Verify ^|^| call :fail ^"dism.exe encountered an error.^"&amp;echo:call :print ^"Making system partition bootable^")</Path>
 				</RunSynchronousCommand>
 				<RunSynchronousCommand wcm:action="add">
 					<Order>26</Order>
-					<Path>cmd.exe /c &gt;&gt;X:\pe.cmd (echo:call :print ^"Adding drivers from ^%PEDRIVERS_FOLDER^% to new installation^"&amp;echo:dism.exe /Add-Driver /Image:W:\ /Driver:^"^%PEDRIVERS_FOLDER^%^" /Recurse&amp;echo:^)&amp;echo:call :print ^"Disabling Windows Defender^")</Path>
+					<Path>cmd.exe /c &gt;&gt;X:\pe.cmd (echo:bcdboot.exe W:\Windows /s S: ^|^| call :fail ^"bcdboot.exe encountered an error.^"&amp;echo:if ^%LAYOUT^% == GPT (&amp;echo:bcdedit.exe /set {fwbootmgr} bootsequence {bootmgr} ^|^| call :fail ^"bcdedit.exe encountered an error.^")</Path>
 				</RunSynchronousCommand>
 				<RunSynchronousCommand wcm:action="add">
 					<Order>27</Order>
-					<Path>cmd.exe /c &gt;&gt;X:\pe.cmd (echo:reg.exe LOAD HKLM\mount W:\Windows\System32\config\SYSTEM&amp;echo:for ^%^%s in (Sense WdBoot WdFilter WdNisDrv WdNisSvc WinDefend^) do reg.exe ADD HKLM\mount\ControlSet001\Services\^%^%s /v Start /t REG_DWORD /d 4 /f)</Path>
+					<Path>cmd.exe /c &gt;&gt;X:\pe.cmd (echo:^)&amp;echo:call :print ^"Copying answer file to target disk^"&amp;echo:mkdir W:\Windows\Panther&amp;echo:copy ^%XML_FILE^% W:\Windows\Panther\unattend.xml&amp;echo:if defined PEDRIVERS_FOLDER ()</Path>
 				</RunSynchronousCommand>
 				<RunSynchronousCommand wcm:action="add">
 					<Order>28</Order>
-					<Path>cmd.exe /c &gt;&gt;X:\pe.cmd (echo:reg.exe UNLOAD HKLM\mount&amp;echo:call :print ^"Setting device setup region to United States (GeoID 244^)^"&amp;echo:reg.exe LOAD HKLM\mount W:\Windows\System32\config\SOFTWARE)</Path>
+					<Path>cmd.exe /c &gt;&gt;X:\pe.cmd (echo:call :print ^"Adding drivers from ^%PEDRIVERS_FOLDER^% to new installation^"&amp;echo:dism.exe /Add-Driver /Image:W:\ /Driver:^"^%PEDRIVERS_FOLDER^%^" /Recurse&amp;echo:^)&amp;echo:if defined VIRTIO_DRIVE ()</Path>
 				</RunSynchronousCommand>
 				<RunSynchronousCommand wcm:action="add">
 					<Order>29</Order>
-					<Path>cmd.exe /c &gt;&gt;X:\pe.cmd (echo:reg.exe ADD ^"HKLM\mount\Microsoft\Windows\CurrentVersion\Control Panel\DeviceRegion^" /v DeviceRegion /t REG_DWORD /d 244 /f&amp;echo:reg.exe UNLOAD HKLM\mount&amp;echo:call :print ^"Computer will now reboot^")</Path>
+					<Path>cmd.exe /c &gt;&gt;X:\pe.cmd (echo:call :print ^"Adding VirtIO drivers from ^%VIRTIO_DRIVE^% to new installation^"&amp;echo:dism.exe /Add-Driver /Image:W:\ /Driver:^"^%VIRTIO_DRIVE^%\vioscsi\w^%OS_VERSION^%\^%PROCESSOR_ARCHITECTURE^%\vioscsi.inf^")</Path>
 				</RunSynchronousCommand>
 				<RunSynchronousCommand wcm:action="add">
 					<Order>30</Order>
-					<Path>cmd.exe /c &gt;&gt;X:\pe.cmd (echo:wpeutil.exe reboot&amp;echo:goto :eof&amp;echo::fail&amp;echo:echo:&amp;echo:echo:Fatal error: ^%~1&amp;echo:echo:&amp;echo:pause&amp;echo:exit 1&amp;echo::print&amp;echo:echo:&amp;echo:echo:*** ^%~1 ***&amp;echo:echo:&amp;echo:goto :eof)</Path>
+					<Path>cmd.exe /c &gt;&gt;X:\pe.cmd (echo:dism.exe /Add-Driver /Image:W:\ /Driver:^"^%VIRTIO_DRIVE^%\viostor\w^%OS_VERSION^%\^%PROCESSOR_ARCHITECTURE^%\viostor.inf^")</Path>
 				</RunSynchronousCommand>
 				<RunSynchronousCommand wcm:action="add">
 					<Order>31</Order>
+					<Path>cmd.exe /c &gt;&gt;X:\pe.cmd (echo:dism.exe /Add-Driver /Image:W:\ /Driver:^"^%VIRTIO_DRIVE^%\NetKVM\w^%OS_VERSION^%\^%PROCESSOR_ARCHITECTURE^%\netkvm.inf^"&amp;echo:^)&amp;echo:call :print ^"Disabling Windows Defender^")</Path>
+				</RunSynchronousCommand>
+				<RunSynchronousCommand wcm:action="add">
+					<Order>32</Order>
+					<Path>cmd.exe /c &gt;&gt;X:\pe.cmd (echo:reg.exe LOAD HKLM\mount W:\Windows\System32\config\SYSTEM&amp;echo:for ^%^%s in (Sense WdBoot WdFilter WdNisDrv WdNisSvc WinDefend^) do reg.exe ADD HKLM\mount\ControlSet001\Services\^%^%s /v Start /t REG_DWORD /d 4 /f)</Path>
+				</RunSynchronousCommand>
+				<RunSynchronousCommand wcm:action="add">
+					<Order>33</Order>
+					<Path>cmd.exe /c &gt;&gt;X:\pe.cmd (echo:reg.exe UNLOAD HKLM\mount&amp;echo:call :print ^"Setting device setup region to United States (GeoID 244^)^"&amp;echo:reg.exe LOAD HKLM\mount W:\Windows\System32\config\SOFTWARE)</Path>
+				</RunSynchronousCommand>
+				<RunSynchronousCommand wcm:action="add">
+					<Order>34</Order>
+					<Path>cmd.exe /c &gt;&gt;X:\pe.cmd (echo:reg.exe ADD ^"HKLM\mount\Microsoft\Windows\CurrentVersion\Control Panel\DeviceRegion^" /v DeviceRegion /t REG_DWORD /d 244 /f&amp;echo:reg.exe UNLOAD HKLM\mount&amp;echo:call :print ^"Computer will now reboot^")</Path>
+				</RunSynchronousCommand>
+				<RunSynchronousCommand wcm:action="add">
+					<Order>35</Order>
+					<Path>cmd.exe /c &gt;&gt;X:\pe.cmd (echo:wpeutil.exe reboot&amp;echo:goto :eof&amp;echo::fail&amp;echo:echo:&amp;echo:echo:Fatal error: ^%~1&amp;echo:echo:&amp;echo:pause&amp;echo:exit 1&amp;echo::print&amp;echo:echo:&amp;echo:echo:*** ^%~1 ***&amp;echo:echo:&amp;echo:goto :eof)</Path>
+				</RunSynchronousCommand>
+				<RunSynchronousCommand wcm:action="add">
+					<Order>36</Order>
 					<Path>cmd.exe /c "X:\pe.cmd"</Path>
 				</RunSynchronousCommand>
 			</RunSynchronous>
@@ -236,6 +256,7 @@ for %%d in (C D E F G H I J K L M N O P Q T U V X Y Z) do (
     if exist %%d:\autounattend.xml set "XML_FILE=%%d:\autounattend.xml"
     if exist %%d:\$OEM$ set "OEM_FOLDER=%%d:\$OEM$"
     if exist %%d:\$WinPEDriver$ set "PEDRIVERS_FOLDER=%%d:\$WinPEDriver$"
+if exist %%d:\virtio-win-guest-tools.exe set "VIRTIO_DRIVE=%%d:"
 )
 for /f "tokens=3" %%t in ('reg.exe query HKLM\System\Setup /v UnattendFile 2^&gt;nul') do ( if exist %%t set "XML_FILE=%%t" )
 if not defined IMAGE_FILE call :fail "Could not locate install.wim, install.esd or install.swm."
@@ -249,6 +270,13 @@ for /f "tokens=3 delims=." %%v in ('ver') do (
 if defined PEDRIVERS_FOLDER (
     call :print "Loading drivers from %PEDRIVERS_FOLDER%"
     for /R %PEDRIVERS_FOLDER% %%f IN (*.inf) do drvload.exe "%%f"
+)
+
+if defined VIRTIO_DRIVE (
+    call :print "Loading VirtIO drivers from %VIRTIO_DRIVE%"
+    drvload.exe "%VIRTIO_DRIVE%\vioscsi\w%OS_VERSION%\%PROCESSOR_ARCHITECTURE%\vioscsi.inf"
+    drvload.exe "%VIRTIO_DRIVE%\viostor\w%OS_VERSION%\%PROCESSOR_ARCHITECTURE%\viostor.inf"
+    drvload.exe "%VIRTIO_DRIVE%\NetKVM\w%OS_VERSION%\%PROCESSOR_ARCHITECTURE%\netkvm.inf"
 )
 
 &gt;X:\target.vbs (
@@ -342,6 +370,13 @@ if defined PEDRIVERS_FOLDER (
     dism.exe /Add-Driver /Image:W:\ /Driver:"%PEDRIVERS_FOLDER%" /Recurse
 )
 
+if defined VIRTIO_DRIVE (
+    call :print "Adding VirtIO drivers from %VIRTIO_DRIVE% to new installation"
+    dism.exe /Add-Driver /Image:W:\ /Driver:"%VIRTIO_DRIVE%\vioscsi\w%OS_VERSION%\%PROCESSOR_ARCHITECTURE%\vioscsi.inf"
+    dism.exe /Add-Driver /Image:W:\ /Driver:"%VIRTIO_DRIVE%\viostor\w%OS_VERSION%\%PROCESSOR_ARCHITECTURE%\viostor.inf"
+    dism.exe /Add-Driver /Image:W:\ /Driver:"%VIRTIO_DRIVE%\NetKVM\w%OS_VERSION%\%PROCESSOR_ARCHITECTURE%\netkvm.inf"
+)
+
 call :print "Disabling Windows Defender"
 reg.exe LOAD HKLM\mount W:\Windows\System32\config\SYSTEM
 for %%s in (Sense WdBoot WdFilter WdNisDrv WdNisSvc WinDefend) do reg.exe ADD HKLM\mount\ControlSet001\Services\%%s /v Start /t REG_DWORD /d 4 /f
@@ -391,7 +426,6 @@ foreach( $file in $Document.unattend.Extensions.File ) {
 $selectors = @(
 	'Microsoft.Microsoft3DViewer';
 	'Microsoft.BingSearch';
-	'Microsoft.WindowsCamera';
 	'Clipchamp.Clipchamp';
 	'Microsoft.WindowsAlarms';
 	'Microsoft.Copilot';
@@ -415,13 +449,11 @@ $selectors = @(
 	'Microsoft.PowerAutomateDesktop';
 	'MicrosoftCorporationII.QuickAssist';
 	'Microsoft.SkypeApp';
-	'Microsoft.ScreenSketch';
 	'Microsoft.MicrosoftSolitaireCollection';
 	'Microsoft.MicrosoftStickyNotes';
 	'MicrosoftTeams';
 	'MSTeams';
 	'Microsoft.Todos';
-	'Microsoft.WindowsSoundRecorder';
 	'Microsoft.Wallet';
 	'Microsoft.BingWeather';
 	'Microsoft.Xbox.TCUI';
@@ -478,7 +510,6 @@ $selectors = @(
 	'MathRecognizer';
 	'OneCoreUAP.OneSync';
 	'App.Support.QuickAssist';
-	'Microsoft.Windows.SnippingTool';
 	'Language.Speech';
 	'Language.TextToSpeech';
 	'App.StepsRecorder';
@@ -530,7 +561,6 @@ foreach( $selector in $selectors ) {
 $selectors = @(
 	'MediaPlayback';
 	'Recall';
-	'Microsoft-SnippingTool';
 );
 $getCommand = {
   Get-WindowsOptionalFeature -Online | Where-Object -Property 'State' -NotIn -Value @(
@@ -622,6 +652,16 @@ $excludes = Get-ChildItem -LiteralPath 'Registry::HKU\DefaultUser\AppEvents\Even
 Get-ChildItem -Path 'Registry::HKU\DefaultUser\AppEvents\Schemes\Apps\*\*' |
     Where-Object -Property 'PSChildName' -NotIn $excludes |
     Get-ChildItem -Include '.Current' | Set-ItemProperty -Name '(Default)' -Value '';
+		</File>
+		<File path="C:\Windows\Setup\Scripts\VirtIoGuestTools.ps1">
+foreach( $letter in 'DEFGHIJKLMNOPQRSTUVWXYZ'.ToCharArray() ) {
+	$exe = "${letter}:\virtio-win-guest-tools.exe";
+	if( Test-Path -LiteralPath $exe ) {
+		Start-Process -FilePath $exe -ArgumentList '/passive', '/norestart' -Wait;
+		return;
+	}
+}
+'VirtIO Guest Tools image (virtio-win-*.iso) is not attached to this VM.';
 		</File>
 		<File path="C:\Windows\Setup\Scripts\SetStartPins.ps1">
 $json = '{"pinnedList":[]}';
@@ -763,7 +803,7 @@ function Set-WallpaperImage {
 }
 Set-WallpaperImage -LiteralPath 'C:\Windows\Setup\Scripts\Wallpaper';
 		</File>
-		<File path="C:\Windows\Setup\Scripts\unattend-00.ps1">
+		<File path="C:\Windows\Setup\Scripts\unattend-01.ps1">
 # Paste this script into the Unattend Generator's "System" script section, so
 # it runs as SYSTEM during the specialize pass, before the first user logon.
 #
@@ -793,7 +833,7 @@ $key = 'HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System'
 
 reg.exe add $key /v ConsentPromptBehaviorAdmin /t REG_DWORD /d 0 /f
 		</File>
-		<File path="C:\Windows\Setup\Scripts\unattend-01.ps1">
+		<File path="C:\Windows\Setup\Scripts\unattend-02.ps1">
 # Paste this script into the Unattend Generator's "UserOnce" section.
 # It is intentionally small and stable: its only job is to download and run
 # the public customization bootstrap from this repository.
@@ -827,9 +867,6 @@ Start-Process -FilePath 'powershell.exe' -Verb RunAs -Wait -ArgumentList "-NoLog
 		</File>
 		<File path="C:\Windows\Setup\Scripts\Specialize.ps1">
 $scripts = @(
-	{
-		&amp; 'C:\Windows\Setup\Scripts\unattend-00.ps1';
-	};
 	{
 		Remove-Item -LiteralPath 'Registry::HKLM\Software\Microsoft\WindowsUpdate\Orchestrator\UScheduler_Oobe\DevHomeUpdate' -Force -ErrorAction 'SilentlyContinue';
 	};
@@ -923,6 +960,9 @@ $scripts = @(
 		  $_;
 		}
 	};
+	{
+		&amp; 'C:\Windows\Setup\Scripts\unattend-01.ps1';
+	};
 );
 
 &amp; {
@@ -948,6 +988,9 @@ $scripts = @(
 	};
 	{
 		Set-ItemProperty -LiteralPath 'Registry::HKCU\AppEvents\Schemes' -Name '(Default)' -Type 'String' -Value '.None';
+	};
+	{
+		Set-ItemProperty -LiteralPath 'Registry::HKCU\Software\Microsoft\Windows\CurrentVersion\Search' -Name 'SearchboxTaskbarMode' -Type 'DWord' -Value 0;
 	};
 	{
 		Set-ItemProperty -LiteralPath 'Registry::HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Explorer\VisualEffects' -Name 'VisualFXSetting' -Type 'DWord' -Value 2 -Force;
@@ -989,7 +1032,7 @@ $scripts = @(
 		&amp; 'C:\Windows\Setup\Scripts\SetWallpaper.ps1';
 	};
 	{
-		&amp; 'C:\Windows\Setup\Scripts\unattend-01.ps1';
+		&amp; 'C:\Windows\Setup\Scripts\unattend-02.ps1';
 	};
 	{
 		Get-Process -Name 'explorer' -ErrorAction 'SilentlyContinue' | Where-Object -FilterScript {
@@ -1027,6 +1070,15 @@ $scripts = @(
 	};
 	{
 		reg.exe add "HKU\DefaultUser\Software\Microsoft\Windows\CurrentVersion\GameDVR" /v AppCaptureEnabled /t REG_DWORD /d 0 /f;
+	};
+	{
+		reg.exe add "HKU\DefaultUser\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" /v "HideFileExt" /t REG_DWORD /d 0 /f;
+	};
+	{
+		reg.exe add "HKU\DefaultUser\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" /v "Hidden" /t REG_DWORD /d 1 /f;
+	};
+	{
+		reg.exe add "HKU\DefaultUser\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" /v "ShowSuperHidden" /t REG_DWORD /d 1 /f;
 	};
 	{
 		&amp; 'C:\Windows\Setup\Scripts\TurnOffSystemSounds.ps1';
@@ -1090,6 +1142,9 @@ $scripts = @(
 	};
 	{
 		Disable-ComputerRestore -Drive 'C:\';
+	};
+	{
+		&amp; 'C:\Windows\Setup\Scripts\VirtIoGuestTools.ps1';
 	};
 	{
 		cmd.exe /c "rmdir C:\Windows.old";
