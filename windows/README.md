@@ -1344,6 +1344,14 @@ Run the steps from a branch instead of `main` (edit both the URL and `-RepoRef`)
 powershell.exe -NoLogo -NoProfile -ExecutionPolicy Bypass -Command "$b='my-branch';$u='https://raw.githubusercontent.com/mdelgert/proxmox-win11/'+$b+'/windows/bootstrap.ps1';$f=Join-Path $env:TEMP 'bootstrap.ps1';[Net.ServicePointManager]::SecurityProtocol=[Net.SecurityProtocolType]::Tls12;Invoke-WebRequest -UseBasicParsing -Uri $u -OutFile $f;& powershell.exe -NoLogo -NoProfile -ExecutionPolicy Bypass -File $f -RepoRef $b"
 ```
 
+Run exactly ONE step through the runner (the recommended way to debug a step —
+it gets `$RawBase`, `$Root`, `Invoke-Download`, `Request-Reboot` and
+`Disable-SetupAutoLogon`, ignores any existing `.done` marker, and never reboots):
+
+```powershell
+powershell.exe -NoLogo -NoProfile -ExecutionPolicy Bypass -Command "$s='030-winget-configure';$u='https://raw.githubusercontent.com/mdelgert/proxmox-win11/main/windows/bootstrap.ps1';$f=Join-Path $env:TEMP 'bootstrap.ps1';[Net.ServicePointManager]::SecurityProtocol=[Net.SecurityProtocolType]::Tls12;Invoke-WebRequest -UseBasicParsing -Uri $u -OutFile $f;& powershell.exe -NoLogo -NoProfile -ExecutionPolicy Bypass -File $f -OnlyStep $s"
+```
+
 Download and run one step straight from GitHub (see the standalone limits below):
 
 ```powershell
@@ -1394,9 +1402,25 @@ powershell.exe -NoLogo -NoProfile -ExecutionPolicy Bypass -File $boot -ResetStat
 
 ## Re-run ONE step
 
-Delete that step's marker and run the bootstrap again. This is the recommended
-way to retest a single step: the step runs *inside* the runner, so it gets the
-variables and functions it expects.
+Use `-OnlyStep`. The step runs *inside* the runner, so it gets the variables and
+functions it expects, and nothing else is touched:
+
+```powershell
+powershell.exe -NoLogo -NoProfile -ExecutionPolicy Bypass -File $boot -OnlyStep '030-winget-configure'
+```
+
+`-OnlyStep` ignores any existing `.done` marker, writes that marker when the
+step succeeds (so a normal run continues past it), and leaves the resume task,
+UAC prompting, `complete.marker` and every other marker alone. A
+`Request-Reboot` from the step is reported and suppressed, so it will not
+restart a machine you are debugging on. It cannot be combined with
+`-ResetState`.
+
+A step not listed in `$Steps` still runs, with a warning — useful for a script
+you have not wired up yet.
+
+The older approach still works if you want the step to run as part of a full
+pass: delete its marker and run the bootstrap normally.
 
 ```powershell
 Remove-Item 'C:\ProgramData\proxmox-win11\state\040-git-config.done'
@@ -1422,12 +1446,12 @@ they use variables and functions that `bootstrap.ps1` defines:
 
 | Step | Needs from the runner |
 | --- | --- |
-| `010-winget-configure` | `$RawBase`, `$Root`, `Invoke-Download` |
-| `010-winget-baseline` | `$RawBase`, `$Root`, `Invoke-Download` |
-| `020-ssh-keys` | `Request-Reboot` |
-| `999-complete` | `Disable-SetupAutoLogon` |
+| `030-winget-configure` | `$RawBase`, `$Root`, `Invoke-Download` |
+| `030-winget-baseline` | `$RawBase`, `$Root`, `Invoke-Download` |
+| `999-complete` | `Disable-SetupAutoLogon`, `Request-Reboot` |
 
-Any other step runs on its own. Download a fresh copy:
+Use `-OnlyStep` for those three. Any other step runs on its own — download a
+fresh copy:
 
 ```powershell
 $name = '020-network-private'
@@ -1462,3 +1486,16 @@ Get-ScheduledTaskInfo -TaskName 'ProxmoxWin11-Customize'
 
 The task is registered on the first bootstrap run and removed automatically
 after the last step completes.
+
+### Disable the resume task while you debug
+
+If a step failed, the task is still registered. Reboot while investigating and
+30 seconds into the next boot a **SYSTEM** instance starts, retries the failed
+step, and appends to the same `customize.log` — two runners, interleaved log,
+and WinGet steps that cannot succeed as SYSTEM in the first place.
+
+```powershell
+Disable-ScheduledTask -TaskName 'ProxmoxWin11-Customize'
+# ... debug, then
+Enable-ScheduledTask -TaskName 'ProxmoxWin11-Customize'
+```

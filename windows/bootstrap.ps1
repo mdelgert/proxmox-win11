@@ -28,6 +28,7 @@ param(
     [string]$RepoOwner = 'mdelgert',
     [string]$RepoName = 'proxmox-win11',
     [string]$RepoRef = 'main',
+    [string]$OnlyStep = '',
     [switch]$ResetState,
     [switch]$NoReboot
 )
@@ -288,8 +289,50 @@ try {
     Write-Log "Starting customization with Windows PowerShell $($PSVersionTable.PSVersion)."
     Write-Log "Repository source: $RawBase"
 
+    if ($OnlyStep -and $ResetState) {
+        throw 'Use -OnlyStep or -ResetState, not both.'
+    }
+
     if ($ResetState) {
         Reset-StepState
+    }
+
+    # Debug aid for a single step, normally over SSH. The step runs in the
+    # runner's own scope, so it still sees $RawBase, $Root, Invoke-Download,
+    # Request-Reboot and Disable-SetupAutoLogon.
+    #
+    # This path deliberately leaves the resume task, UAC prompting,
+    # complete.marker and every other step's marker alone, and it never
+    # reboots the machine someone is debugging on.
+    if ($OnlyStep) {
+        if ($Steps -notcontains $OnlyStep) {
+            Write-Log "Warning: '$OnlyStep' is not in the step list, so it does not run in a normal pipeline."
+        }
+
+        $doneMarker = Join-Path $StateDir "$OnlyStep.done"
+        $localStep = Join-Path $CacheDir "$OnlyStep.ps1"
+        $stepUrl = "$RawBase/$StepsDir/$OnlyStep.ps1"
+
+        Write-Log "Single-step run: $OnlyStep. Any existing marker is ignored."
+        Write-Log "Downloading step: $OnlyStep"
+        Invoke-Download -Uri $stepUrl -OutFile $localStep
+
+        Write-Log "Running step: $OnlyStep"
+        & $localStep
+
+        New-Item `
+            -ItemType File `
+            -Path $doneMarker `
+            -Force | Out-Null
+
+        Write-Log "Completed step: $OnlyStep"
+
+        if (Test-Path -LiteralPath $RebootMarker) {
+            Remove-Item -LiteralPath $RebootMarker -Force
+            Write-Log 'The step requested a reboot. Suppressed for a single-step run.'
+        }
+
+        exit 0
     }
 
     # Keep a local copy so a reboot does not depend on GitHub just to start the
