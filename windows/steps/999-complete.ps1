@@ -32,3 +32,6 @@ Write-Host ''
 Write-Host "Computer:  $env:COMPUTERNAME"
 Write-Host "Completed: $timestamp"
 Write-Host 'Temporary setup autologon has been disabled.'
+
+# Request a reboot to ensure all changes take effect.
+Request-Reboot

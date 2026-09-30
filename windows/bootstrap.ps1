@@ -182,6 +182,31 @@ function Remove-ResumeTask {
     }
 }
 
+function Restore-UacPrompting {
+    # The specialize pass set ConsentPromptBehaviorAdmin to 0 so that UserOnce
+    # could elevate this runner without a consent dialog nobody was there to
+    # answer. See windows/SpecializeUac.ps1.
+    #
+    # That is needed exactly once, for this first launch. Every later resume
+    # comes from the SYSTEM startup task, which never needs UAC. So the default
+    # of 5 goes back immediately, before any step runs - a failed or abandoned
+    # run must not leave the machine with prompt-free elevation.
+    #
+    # Rerunning the bootstrap by hand after this point raises a normal UAC
+    # prompt, which is correct: someone is sitting at the console.
+
+    $key = 'Registry::HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System'
+
+    New-ItemProperty `
+        -LiteralPath $key `
+        -Name 'ConsentPromptBehaviorAdmin' `
+        -Value 5 `
+        -PropertyType DWord `
+        -Force | Out-Null
+
+    Write-Log 'Restored UAC consent prompting for administrators (ConsentPromptBehaviorAdmin = 5).'
+}
+
 function Invoke-Download {
     param(
         [Parameter(Mandatory = $true)][string]$Uri,
@@ -284,6 +309,9 @@ try {
     # Disable-SetupAutoLogon
 
     Install-ResumeTask
+
+    # Silent elevation is no longer required now that the resume task exists.
+    Restore-UacPrompting
 
     # A duplicated entry would silently skip on its second appearance, because
     # the .done marker from the first run already exists. Fail loudly instead.

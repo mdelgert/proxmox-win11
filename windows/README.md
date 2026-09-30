@@ -82,6 +82,7 @@ proxmox-win11/
 │   ├── build-iso.sh
 │   └── create-vm.sh
 └── windows/
+    ├── SpecializeUac.ps1         # pasted into generator's System script slot
     ├── UserOnce.ps1              # tiny script pasted into Unattend Generator
     ├── bootstrap.ps1             # master Windows customization runner
     └── steps/
@@ -281,12 +282,54 @@ $bootstrapUrl = 'https://raw.githubusercontent.com/mdelgert/proxmox-win11/main/w
 $bootstrapFile = Join-Path $env:TEMP 'proxmox-win11-bootstrap.ps1'
 
 Invoke-WebRequest -UseBasicParsing -Uri $bootstrapUrl -OutFile $bootstrapFile
-& powershell.exe -NoLogo -NoProfile -ExecutionPolicy Bypass -File $bootstrapFile
+Start-Process -FilePath 'powershell.exe' -Verb RunAs -Wait -ArgumentList "-NoLogo -NoProfile -ExecutionPolicy Bypass -File `"$bootstrapFile`""
 ```
 
 After this is embedded in `Autounattend.xml`, you normally do **not** need to change the answer file just because post-install customization changes.
 
 New machines always download the current public `windows/bootstrap.ps1` when UserOnce runs.
+
+---
+
+# 3. Configure the System (specialize) script — required
+
+UserOnce runs under the logged-on user's **non-elevated** token, even for a
+member of Administrators, while `bootstrap.ps1` refuses to run unelevated. That
+is why UserOnce launches it with `Start-Process -Verb RunAs`.
+
+Under default UAC settings that RunAs raises a consent dialog on the secure
+desktop. The first logon is unattended, so nobody clicks **Yes**: UserOnce
+blocks on `-Wait` forever, and because `RunOnce` deletes its value *before*
+running the command, nothing ever retries. The symptom is a VM that reaches the
+desktop with no provisioning and no `C:\ProgramData\proxmox-win11` directory.
+
+To avoid that, paste the contents of:
+
+```text
+windows/SpecializeUac.ps1
+```
+
+into the generator's **System** script area. It runs as SYSTEM during the
+specialize pass and sets `ConsentPromptBehaviorAdmin = 0`, so administrators
+elevate without a prompt. `EnableLUA` is left at `1` on purpose — turning UAC
+off entirely breaks Appx/Store servicing that the WinGet steps depend on.
+
+The weakened setting is only needed for **one** launch. Every later resume comes
+from the SYSTEM startup task, which does not use UAC at all, so `bootstrap.ps1`
+restores the Windows default (`5`) as soon as that task is registered — before
+any customization step runs. A step that fails, or a run you abandon halfway,
+cannot leave the VM with prompt-free elevation.
+
+The practical exposure is therefore a few seconds during the first automatic
+logon, on a machine with no network services published yet. Rerunning the
+bootstrap by hand afterwards raises a normal consent prompt, which is what you
+want when you are sitting at the console.
+
+Both generator scripts are embedded in the answer file, so **regenerating
+`Autounattend.xml` without pasting this one back in silently reintroduces the
+hang.** In the current `assets/autounattend.xml` they appear as
+`C:\Windows\Setup\Scripts\unattend-00.ps1` (this script, called from
+`Specialize.ps1`) and `unattend-01.ps1` (UserOnce).
 
 ---
 
@@ -323,7 +366,7 @@ Prefer built-in Windows cmdlets and normal PowerShell 5.1 syntax.
 
 ---
 
-# 3. How the master customization runner works
+# 4. How the master customization runner works
 
 The master runner is:
 
@@ -427,7 +470,7 @@ For debugging, this should be the first file you inspect.
 
 ---
 
-# 4. The step model
+# 5. The step model
 
 The bootstrap contains an ordered list:
 
@@ -573,7 +616,7 @@ This keeps resume logic simple and avoids building a state machine inside indivi
 
 ---
 
-# 5. Recommended order for early customization
+# 6. Recommended order for early customization
 
 Do not add everything at once.
 
@@ -696,7 +739,7 @@ optional software installs
 
 ---
 
-# 6. Manual testing on a newly built Windows machine
+# 7. Manual testing on a newly built Windows machine
 
 The exact same master runner can be launched manually.
 
@@ -888,7 +931,7 @@ A future improvement could introduce a small `channel` mechanism so `Autounatten
 
 ---
 
-# 7. Proxmox installation
+# 8. Proxmox installation
 
 Clone the repository on the Proxmox host:
 
@@ -1088,7 +1131,26 @@ Check whether this exists:
 C:\ProgramData\proxmox-win11
 ```
 
-If it does not exist, debug the UserOnce bootstrap.
+If it does not exist, debug the UserOnce bootstrap. Its log is written to the
+first user's temp directory:
+
+```text
+C:\Users\<user>\AppData\Local\Temp\UserOnce.log
+```
+
+A log that stops at the `unattend-01.ps1` step usually means the elevation
+prompt was never answered: `Start-Process -Verb RunAs` blocks on an unattended
+desktop unless `ConsentPromptBehaviorAdmin` is 0. Verify that the System
+(specialize) script from `windows/SpecializeUac.ps1` is actually present in the
+answer file, and check the value on the VM:
+
+```powershell
+Get-ItemProperty 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System' -Name ConsentPromptBehaviorAdmin
+```
+
+Because `RunOnce` deletes its value before running the command, a blocked or
+failed UserOnce never retries by itself. Rerun the bootstrap by hand from an
+elevated PowerShell session.
 
 The Unattend Generator also places/uses its own setup scripts under:
 
@@ -1237,17 +1299,166 @@ https://github.com/community-scripts/core
 # License
 
 MIT. See [LICENSE](LICENSE).
+# Troubleshooting and testing the scripts
 
-# Testing the scripts
+Every command below needs an **elevated** PowerShell session — `bootstrap.ps1`
+throws `Run bootstrap.ps1 from an elevated Administrator PowerShell session.`
+otherwise.
+
+Runner state lives under `C:\ProgramData\proxmox-win11`:
+
+```text
+state\<step>.done       one marker per completed step
+cache\<step>.ps1        last downloaded copy of each step
+logs\customize.log      transcript of every run
+bootstrap.ps1           local copy used by the resume task
+complete.marker         written after the final step succeeds
+```
+
+## Copy/paste one-liners
+
+Self-contained: each downloads what it needs and runs it. Paste into an
+**elevated** PowerShell (or `cmd`) on the VM. No prior setup required.
+
+Run every step that has not completed yet:
 
 ```powershell
-
-powershell.exe -NoLogo -NoProfile -ExecutionPolicy Bypass -Command "$u='https://raw.githubusercontent.com/mdelgert/proxmox-win11/main/windows/bootstrap.ps1';$f=\"$env:TEMP\proxmox-win11-bootstrap.ps1\";[Net.ServicePointManager]::SecurityProtocol=[Net.SecurityProtocolType]::Tls12;Invoke-WebRequest -UseBasicParsing -Uri $u -OutFile $f;& powershell.exe -NoLogo -NoProfile -ExecutionPolicy Bypass -File $f"
-
-powershell.exe -NoLogo -NoProfile -ExecutionPolicy Bypass -Command "$u='https://raw.githubusercontent.com/mdelgert/proxmox-win11/main/windows/bootstrap.ps1';$f=\"$env:TEMP\proxmox-win11-bootstrap.ps1\";[Net.ServicePointManager]::SecurityProtocol=[Net.SecurityProtocolType]::Tls12;Invoke-WebRequest -UseBasicParsing -Uri $u -OutFile $f;& powershell.exe -NoLogo -NoProfile -ExecutionPolicy Bypass -File $f -NoReboot"
-
-powershell.exe -NoLogo -NoProfile -ExecutionPolicy Bypass -File "C:\ProgramData\proxmox-win11\cache\025-update-winget.ps1"
-
-powershell.exe -NoLogo -NoProfile -ExecutionPolicy Bypass -Command "$u='https://raw.githubusercontent.com/mdelgert/proxmox-win11/main/windows/steps/030-update-winget.ps1';$f=Join-Path $env:TEMP '030-update-winget.ps1';Invoke-WebRequest -UseBasicParsing -Uri $u -OutFile $f;& powershell.exe -NoLogo -NoProfile -ExecutionPolicy Bypass -File $f"
-
+powershell.exe -NoLogo -NoProfile -ExecutionPolicy Bypass -Command "$u='https://raw.githubusercontent.com/mdelgert/proxmox-win11/main/windows/bootstrap.ps1';$f=Join-Path $env:TEMP 'bootstrap.ps1';[Net.ServicePointManager]::SecurityProtocol=[Net.SecurityProtocolType]::Tls12;Invoke-WebRequest -UseBasicParsing -Uri $u -OutFile $f;& powershell.exe -NoLogo -NoProfile -ExecutionPolicy Bypass -File $f"
 ```
+
+Run every step from scratch (clears all `.done` markers, keeps logs):
+
+```powershell
+powershell.exe -NoLogo -NoProfile -ExecutionPolicy Bypass -Command "$u='https://raw.githubusercontent.com/mdelgert/proxmox-win11/main/windows/bootstrap.ps1';$f=Join-Path $env:TEMP 'bootstrap.ps1';[Net.ServicePointManager]::SecurityProtocol=[Net.SecurityProtocolType]::Tls12;Invoke-WebRequest -UseBasicParsing -Uri $u -OutFile $f;& powershell.exe -NoLogo -NoProfile -ExecutionPolicy Bypass -File $f -ResetState"
+```
+
+Same, but stop at a reboot request instead of restarting (exit code `3010`):
+
+```powershell
+powershell.exe -NoLogo -NoProfile -ExecutionPolicy Bypass -Command "$u='https://raw.githubusercontent.com/mdelgert/proxmox-win11/main/windows/bootstrap.ps1';$f=Join-Path $env:TEMP 'bootstrap.ps1';[Net.ServicePointManager]::SecurityProtocol=[Net.SecurityProtocolType]::Tls12;Invoke-WebRequest -UseBasicParsing -Uri $u -OutFile $f;& powershell.exe -NoLogo -NoProfile -ExecutionPolicy Bypass -File $f -ResetState -NoReboot"
+```
+
+Run the steps from a branch instead of `main` (edit both the URL and `-RepoRef`):
+
+```powershell
+powershell.exe -NoLogo -NoProfile -ExecutionPolicy Bypass -Command "$b='my-branch';$u='https://raw.githubusercontent.com/mdelgert/proxmox-win11/'+$b+'/windows/bootstrap.ps1';$f=Join-Path $env:TEMP 'bootstrap.ps1';[Net.ServicePointManager]::SecurityProtocol=[Net.SecurityProtocolType]::Tls12;Invoke-WebRequest -UseBasicParsing -Uri $u -OutFile $f;& powershell.exe -NoLogo -NoProfile -ExecutionPolicy Bypass -File $f -RepoRef $b"
+```
+
+Download and run one step straight from GitHub (see the standalone limits below):
+
+```powershell
+powershell.exe -NoLogo -NoProfile -ExecutionPolicy Bypass -Command "$n='020-network-private';$u='https://raw.githubusercontent.com/mdelgert/proxmox-win11/main/windows/steps/'+$n+'.ps1';$f=Join-Path $env:TEMP ($n+'.ps1');[Net.ServicePointManager]::SecurityProtocol=[Net.SecurityProtocolType]::Tls12;Invoke-WebRequest -UseBasicParsing -Uri $u -OutFile $f;& powershell.exe -NoLogo -NoProfile -ExecutionPolicy Bypass -File $f"
+```
+
+Rerun the copy the last bootstrap already cached (no download):
+
+```powershell
+powershell.exe -NoLogo -NoProfile -ExecutionPolicy Bypass -File "C:\ProgramData\proxmox-win11\cache\020-network-private.ps1"
+```
+
+---
+
+The sections below break the same operations out, for when you want to combine
+them or inspect state. They assume these two variables:
+
+```powershell
+$repo = 'https://raw.githubusercontent.com/mdelgert/proxmox-win11/main'
+$boot = Join-Path $env:TEMP 'bootstrap.ps1'
+[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+Invoke-WebRequest -UseBasicParsing -Uri "$repo/windows/bootstrap.ps1" -OutFile $boot
+```
+
+## Run everything that has not completed yet
+
+Steps with a `.done` marker are skipped, so this is safe to repeat after fixing
+a failure.
+
+```powershell
+powershell.exe -NoLogo -NoProfile -ExecutionPolicy Bypass -File $boot
+```
+
+## Run everything from scratch
+
+`-ResetState` deletes every `.done` marker plus `complete.marker`. Logs are kept.
+
+```powershell
+powershell.exe -NoLogo -NoProfile -ExecutionPolicy Bypass -File $boot -ResetState
+```
+
+Add `-NoReboot` to stop at a reboot request instead of restarting. The run exits
+with code `3010` and the resume task continues at the next boot.
+
+```powershell
+powershell.exe -NoLogo -NoProfile -ExecutionPolicy Bypass -File $boot -ResetState -NoReboot
+```
+
+## Re-run ONE step
+
+Delete that step's marker and run the bootstrap again. This is the recommended
+way to retest a single step: the step runs *inside* the runner, so it gets the
+variables and functions it expects.
+
+```powershell
+Remove-Item 'C:\ProgramData\proxmox-win11\state\040-git-config.done'
+powershell.exe -NoLogo -NoProfile -ExecutionPolicy Bypass -File $boot
+```
+
+## Test a step you are still editing
+
+Push to a branch and point the runner at it. `-RepoRef` controls where steps are
+downloaded from and is carried into the resume task.
+
+```powershell
+powershell.exe -NoLogo -NoProfile -ExecutionPolicy Bypass -File $boot -RepoRef 'my-branch'
+```
+
+A script in `windows/steps` that is not listed in `$Steps` inside
+`bootstrap.ps1` never runs, no matter what is in the repository.
+
+## Running a single step file on its own
+
+Fine for a quick check, but **these steps fail when run standalone**, because
+they use variables and functions that `bootstrap.ps1` defines:
+
+| Step | Needs from the runner |
+| --- | --- |
+| `010-winget-configure` | `$RawBase`, `$Root`, `Invoke-Download` |
+| `010-winget-baseline` | `$RawBase`, `$Root`, `Invoke-Download` |
+| `020-ssh-keys` | `Request-Reboot` |
+| `999-complete` | `Disable-SetupAutoLogon` |
+
+Any other step runs on its own. Download a fresh copy:
+
+```powershell
+$name = '020-network-private'
+$step = Join-Path $env:TEMP "$name.ps1"
+Invoke-WebRequest -UseBasicParsing -Uri "$repo/windows/steps/$name.ps1" -OutFile $step
+powershell.exe -NoLogo -NoProfile -ExecutionPolicy Bypass -File $step
+```
+
+Or rerun the copy the last bootstrap already cached:
+
+```powershell
+powershell.exe -NoLogo -NoProfile -ExecutionPolicy Bypass -File 'C:\ProgramData\proxmox-win11\cache\020-network-private.ps1'
+```
+
+Note that running a step this way does **not** write a `.done` marker, so the
+next bootstrap run will execute it again.
+
+## Read the log
+
+```powershell
+Get-Content 'C:\ProgramData\proxmox-win11\logs\customize.log' -Tail 60
+Select-String -Path 'C:\ProgramData\proxmox-win11\logs\customize.log' -Pattern 'FAILED'
+```
+
+## Inspect progress and the resume task
+
+```powershell
+Get-ChildItem 'C:\ProgramData\proxmox-win11\state'
+Get-ScheduledTask -TaskName 'ProxmoxWin11-Customize'
+Get-ScheduledTaskInfo -TaskName 'ProxmoxWin11-Customize'
+```
+
+The task is registered on the first bootstrap run and removed automatically
+after the last step completes.

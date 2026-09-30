@@ -132,6 +132,3 @@ foreach ($key in $newKeys) {
 
 Write-Host "$AuthorizedKeysFile now contains $($verifyKeys.Count) authorized key(s)."
 Write-Host 'GitHub SSH keys are installed for administrator accounts.'
-
-# Request a reboot to ensure all changes take effect.
-Request-Reboot
