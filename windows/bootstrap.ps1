@@ -63,12 +63,12 @@ $Steps = @(
     # WinGet steps must run as the logged-on user, before any
     # step reboots and the runner resumes as SYSTEM.
     '010-remove-autologoncount'
-    '010-update-winget'
-    '010-winget-ready'
-    '010-winget-configure'
     '020-openssh'
     '020-network-private'
     '020-ssh-keys'
+    '030-update-winget'
+    '030-winget-ready'
+    '030-winget-configure'
     '040-git-config'
     '050-vscode-context-menu'
 )
