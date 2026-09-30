@@ -73,6 +73,7 @@ $Steps = @(
     '030-winget-configure'
     '040-git-config'
     '050-vscode-context-menu'
+    '999-complete'
 )
 
 function Write-Log {
@@ -127,15 +128,12 @@ function Disable-SetupAutoLogon {
 function Install-ResumeTask {
     # Run as SYSTEM after every startup. No user logon is required to continue.
     # The 30-second delay gives networking and Windows services time to settle.
-
-    $existingTask = Get-ScheduledTask `
-        -TaskName $TaskName `
-        -ErrorAction SilentlyContinue
-
-    if ($null -ne $existingTask) {
-        Write-Log "Startup resume task '$TaskName' already exists."
-        return
-    }
+    #
+    # The task is re-registered on every run rather than left alone when it
+    # already exists. An existing task can be disabled (debugging does exactly
+    # that) or carry arguments from an older run, and either would mean no
+    # resume after a reboot. Register-ScheduledTask -Force makes this the
+    # simplest way to guarantee the task matches this run.
 
     $arguments = "-NoLogo -NoProfile -ExecutionPolicy Bypass -File `"$LocalBootstrap`" -RepoOwner `"$RepoOwner`" -RepoName `"$RepoName`" -RepoRef `"$RepoRef`""
 
@@ -163,7 +161,7 @@ function Install-ResumeTask {
         -Settings $settings `
         -Force | Out-Null
 
-    Write-Log "Installed startup resume task '$TaskName'."
+    Write-Log "Registered startup resume task '$TaskName'."
 }
 
 function Remove-ResumeTask {
@@ -254,6 +252,17 @@ function Invoke-Download {
             return
         }
         catch {
+            # A missing file is not a transport problem, so do not spend a
+            # minute retrying it. This is what a typo in $Steps looks like.
+            if ($_.Exception -is [System.Net.WebException]) {
+                $httpResponse = $_.Exception.Response -as [System.Net.HttpWebResponse]
+
+                if ($null -ne $httpResponse -and
+                    $httpResponse.StatusCode -eq [System.Net.HttpStatusCode]::NotFound) {
+                    throw "Not found (HTTP 404): $Uri"
+                }
+            }
+
             if ($attempt -eq $attempts) {
                 throw
             }
@@ -301,6 +310,19 @@ New-Item `
     -ItemType Directory `
     -Force `
     -Path $Root, $StateDir, $CacheDir, $LogDir | Out-Null
+
+# Only one runner at a time. A failed run leaves the resume task registered, so
+# a reboot can start a SYSTEM run while someone is also running the bootstrap by
+# hand. Two runners would write the same markers and interleave the transcript.
+# 'Global\' scopes the mutex across sessions, which is what makes the SYSTEM
+# case work. Windows releases an abandoned mutex when a process dies, so a hard
+# failure cannot wedge this.
+$RunMutex = New-Object System.Threading.Mutex($false, 'Global\ProxmoxWin11-Customize')
+
+if (-not $RunMutex.WaitOne(0)) {
+    Write-Log 'Another customization run is already in progress. Exiting.'
+    exit 0
+}
 
 # Transcript captures both the runner and child-script output. Failure to start
 # a transcript is intentionally non-fatal.
@@ -390,6 +412,8 @@ try {
         throw "The step list contains duplicate entries: $names"
     }
 
+    $rebootRequested = $false
+
     foreach ($name in $Steps) {
         $doneMarker = Join-Path $StateDir "$name.done"
         $localStep = Join-Path $CacheDir "$name.ps1"
@@ -420,26 +444,44 @@ try {
 
         if (Test-Path -LiteralPath $RebootMarker) {
             Remove-Item -LiteralPath $RebootMarker -Force
-
-            if ($NoReboot) {
-                Write-Log 'Reboot required. -NoReboot was specified, so stopping here.'
-                Write-Log 'Reboot manually; the SYSTEM startup task will resume automatically.'
-                exit 3010
-            }
-
-            Write-Log 'Rebooting. The SYSTEM startup task will resume at the next incomplete step.'
-            Restart-Computer -Force
-            exit 0
+            $rebootRequested = $true
+            break
         }
     }
 
-    New-Item `
-        -ItemType File `
-        -Path $CompleteMarker `
-        -Force | Out-Null
+    # Finalize only once every step in the list has a marker.
+    #
+    # A reboot from a mid-list step leaves the resume task in place to carry on
+    # after the restart. A reboot from the *final* step finalizes first, so the
+    # machine does not come back only to run the whole pipeline again as SYSTEM
+    # just to write a marker and delete a task.
+    $remaining = @(
+        $Steps | Where-Object {
+            -not ( Test-Path -LiteralPath ( Join-Path $StateDir "$_.done" ) )
+        }
+    )
 
-    Remove-ResumeTask
-    Write-Log 'All customization steps completed successfully.'
+    if ($remaining.Count -eq 0) {
+        New-Item `
+            -ItemType File `
+            -Path $CompleteMarker `
+            -Force | Out-Null
+
+        Remove-ResumeTask
+        Write-Log 'All customization steps completed successfully.'
+    }
+
+    if ($rebootRequested) {
+        if ($NoReboot) {
+            Write-Log 'Reboot required. -NoReboot was specified, so stopping here.'
+            Write-Log "Steps still incomplete: $($remaining.Count)."
+            exit 3010
+        }
+
+        Write-Log "Rebooting. Steps still incomplete after restart: $($remaining.Count)."
+        Restart-Computer -Force
+        exit 0
+    }
 }
 catch {
     Write-Log "FAILED: $($_.Exception.Message)"
@@ -449,6 +491,13 @@ catch {
 finally {
     try {
         Stop-Transcript | Out-Null
+    }
+    catch {
+    }
+
+    try {
+        $RunMutex.ReleaseMutex()
+        $RunMutex.Dispose()
     }
     catch {
     }

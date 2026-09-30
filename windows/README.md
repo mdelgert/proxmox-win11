@@ -1247,6 +1247,58 @@ These should be added incrementally after the core runner is proven reliable.
 
 ---
 
+# Recommended next revisions
+
+None of these are blocking. They are ordered by how much trouble they save.
+
+## Operational notes worth knowing now
+
+- **A WinGet step can never be fixed by the resume task.** winget is not
+  supported in a SYSTEM context, and the resume task runs as SYSTEM. If
+  `030-update-winget`, `030-winget-ready` or `030-winget-configure` fails, a
+  reboot retry will fail identically. Recover with a manual elevated run in a
+  user session (the copy/paste one-liners do this).
+- **A mid-pipeline reboot pushes every later step into SYSTEM context.** Steps
+  that write to a user profile or read a user-scope install break there.
+  `040-git-config` (`git config --global`) and `050-vscode-context-menu` (VS
+  Code installs per-user by default) are both in that category, which is why
+  the only `Request-Reboot` lives in `999-complete`.
+
+## Runner
+
+1. **Rotate `customize.log`.** `Start-Transcript -Append` grows it forever.
+   Fine on a VM you rebuild, annoying on one you keep.
+2. **Clean the cache after a successful install.** `030-update-winget` leaves
+   about 394 MB (App Installer bundle plus dependency archive) in
+   `C:\ProgramData\proxmox-win11\cache` permanently.
+3. **Move the duplicate-step check ahead of the side effects.** It validates
+   static configuration but currently runs after `Install-ResumeTask` and
+   `Restore-UacPrompting`.
+4. **Share one `Invoke-Step` between `-OnlyStep` and the main loop.** The
+   download/run/marker logic is duplicated, which was deliberate at the time,
+   and the two have already drifted once (`Update-ProcessPath` went into the
+   loop only).
+5. **Pin `-RepoRef` to a tag for a build you want to reproduce.** Steps are
+   downloaded at run time, so a push mid-provision changes what a resumed run
+   executes.
+
+## Steps and configuration
+
+6. **Make `999-complete` self-contained.** It calls `Disable-SetupAutoLogon`
+   and `Request-Reboot`, both defined by the runner, so it cannot be run
+   standalone at all; and it hardcodes `C:\ProgramData\proxmox-win11` instead
+   of using the runner's `$Root`.
+7. **Set `scope: machine` for VS Code in `baseline.dsc.winget`** if you ever
+   want `050-vscode-context-menu` to work outside the installing user's
+   session. It currently lands in `%LOCALAPPDATA%`.
+8. **Delete `windows/steps/misc/`.** Seven unreferenced scripts in a repo whose
+   whole premise is that the `$Steps` list is the truth.
+9. **Fix the remaining README drift.** Earlier sections still name steps that
+   do not exist (`030-ssh-keys`, `040-winget`, `060-apps`,
+   `040-install-feature`, `050-configure-feature`, `070-windows-update`).
+
+---
+
 # Design rules to keep this project maintainable
 
 1. **Autounattend.xml bootstraps; it does not provision applications.**
@@ -1487,15 +1539,22 @@ Get-ScheduledTaskInfo -TaskName 'ProxmoxWin11-Customize'
 The task is registered on the first bootstrap run and removed automatically
 after the last step completes.
 
-### Disable the resume task while you debug
+### The resume task while you debug
 
-If a step failed, the task is still registered. Reboot while investigating and
-30 seconds into the next boot a **SYSTEM** instance starts, retries the failed
-step, and appends to the same `customize.log` — two runners, interleaved log,
-and WinGet steps that cannot succeed as SYSTEM in the first place.
+If a step failed, the task is still registered, so a reboot starts a **SYSTEM**
+run 30 seconds into the next boot. Two runners can no longer trample each other
+— `bootstrap.ps1` holds a global mutex and a second run exits immediately with
+`Another customization run is already in progress.` — but a SYSTEM run still
+cannot succeed at the WinGet steps, so it will just fail again and add noise.
+
+To stop a reboot kicking one off at all:
 
 ```powershell
 Disable-ScheduledTask -TaskName 'ProxmoxWin11-Customize'
 # ... debug, then
 Enable-ScheduledTask -TaskName 'ProxmoxWin11-Customize'
 ```
+
+Note that the next normal `bootstrap.ps1` run **re-registers** the task, which
+also re-enables it. That is deliberate: a disabled or stale task silently means
+no resume after a reboot, which is worse than an extra registration.
