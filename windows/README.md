@@ -1266,34 +1266,84 @@ None of these are blocking. They are ordered by how much trouble they save.
 
 ## Runner
 
-1. **Rotate `customize.log`.** `Start-Transcript -Append` grows it forever.
+1. **Move the step list out of `bootstrap.ps1`.** Every step-list change
+   currently edits the 470-line orchestrator. Comparable tools all keep the
+   ordered work in data with the engine separate (Packer templates, Ansible
+   playbooks, cloud-init user-data, MDT task sequences), and it is design rule
+   #1 applied one level down: the runner orchestrates, it is not the
+   configuration.
+
+   Shape, whichever format is chosen: `windows/steps.<ext>` fetched and cached
+   like `bootstrap.ps1` itself, a `-StepsFile` override for testing a different
+   order without pushing, validation on load (non-empty, no duplicates, names
+   matching `^[A-Za-z0-9._-]+$`), and a loud failure when the manifest is
+   missing or empty rather than a silent zero-step run. About 25 lines, once.
+
+   Two bonuses: the resume task runs the *cached* bootstrap, so today its step
+   list is frozen at first-run time while steps download fresh — a separately
+   fetched manifest makes a resumed run consistent. And machine profiles become
+   free (`steps.txt`, `steps-minimal.txt`).
+
+   **Format choice.** JSON has no comment syntax, and `ConvertFrom-Json` on
+   PowerShell 5.1 rejects `//`, `/* */`, `#` and trailing commas (tested on
+   5.1.26100.6584). Comments as *fields* do work, so both of these are viable:
+
+   ```text
+   # steps.txt - least to type, cannot fail to parse,
+   # comments sit exactly where they apply
+   010-base
+
+   # WinGet steps must run as the logged-on user, before any
+   # step reboots and the runner resumes as SYSTEM.
+   030-update-winget
+   030-winget-ready
+   ```
+
+   ```json
+   {
+     "steps": [
+       { "name": "010-base" },
+       { "name": "030-update-winget",
+         "note": "must run as the logged-on user, before any reboot" }
+     ]
+   }
+   ```
+
+   Per-step JSON objects keep each note attached to its step and are
+   extensible — a `note` could even be logged as the step runs — at the cost of
+   more punctuation by hand and the temptation to add per-step flags that
+   belong inside the steps themselves. A flat `"steps": ["010-base"]` array
+   with one `_notes` block is the shape to avoid: it separates every comment
+   from the line it describes.
+
+2. **Rotate `customize.log`.** `Start-Transcript -Append` grows it forever.
    Fine on a VM you rebuild, annoying on one you keep.
-2. **Clean the cache after a successful install.** `030-update-winget` leaves
+3. **Clean the cache after a successful install.** `030-update-winget` leaves
    about 394 MB (App Installer bundle plus dependency archive) in
    `C:\ProgramData\proxmox-win11\cache` permanently.
-3. **Move the duplicate-step check ahead of the side effects.** It validates
+4. **Move the duplicate-step check ahead of the side effects.** It validates
    static configuration but currently runs after `Install-ResumeTask` and
    `Restore-UacPrompting`.
-4. **Share one `Invoke-Step` between `-OnlyStep` and the main loop.** The
+5. **Share one `Invoke-Step` between `-OnlyStep` and the main loop.** The
    download/run/marker logic is duplicated, which was deliberate at the time,
    and the two have already drifted once (`Update-ProcessPath` went into the
    loop only).
-5. **Pin `-RepoRef` to a tag for a build you want to reproduce.** Steps are
+6. **Pin `-RepoRef` to a tag for a build you want to reproduce.** Steps are
    downloaded at run time, so a push mid-provision changes what a resumed run
    executes.
 
 ## Steps and configuration
 
-6. **Make `999-complete` self-contained.** It calls `Disable-SetupAutoLogon`
+7. **Make `999-complete` self-contained.** It calls `Disable-SetupAutoLogon`
    and `Request-Reboot`, both defined by the runner, so it cannot be run
    standalone at all; and it hardcodes `C:\ProgramData\proxmox-win11` instead
    of using the runner's `$Root`.
-7. **Set `scope: machine` for VS Code in `baseline.dsc.winget`** if you ever
+8. **Set `scope: machine` for VS Code in `baseline.dsc.winget`** if you ever
    want `050-vscode-context-menu` to work outside the installing user's
    session. It currently lands in `%LOCALAPPDATA%`.
-8. **Delete `windows/steps/misc/`.** Seven unreferenced scripts in a repo whose
+9. **Delete `windows/steps/misc/`.** Seven unreferenced scripts in a repo whose
    whole premise is that the `$Steps` list is the truth.
-9. **Fix the remaining README drift.** Earlier sections still name steps that
+10. **Fix the remaining README drift.** Earlier sections still name steps that
    do not exist (`030-ssh-keys`, `040-winget`, `060-apps`,
    `040-install-feature`, `050-configure-feature`, `070-windows-update`).
 
