@@ -209,6 +209,30 @@ function Restore-UacPrompting {
     Write-Log 'Restored UAC consent prompting for administrators (ConsentPromptBehaviorAdmin = 5).'
 }
 
+function Update-ProcessPath {
+    # A step can install a tool whose directory is added to the PATH stored in
+    # the registry. This process inherited its environment when it started and
+    # Windows never updates a running process, so later steps would not see it.
+    # Rebuilding $env:Path from the registry after every step fixes that for
+    # every step that follows, without a reboot.
+    #
+    # Entries this process added itself are preserved, and duplicates removed.
+
+    $parts = @()
+
+    foreach ($scope in 'Machine', 'User') {
+        $value = [Environment]::GetEnvironmentVariable('Path', $scope)
+
+        if ($value) {
+            $parts += ( $value -split ';' | Where-Object { $_ } )
+        }
+    }
+
+    $parts += ( $env:Path -split ';' | Where-Object { $_ } )
+
+    $env:Path = ( ( $parts | Select-Object -Unique ) -join ';' )
+}
+
 function Invoke-Download {
     param(
         [Parameter(Mandatory = $true)][string]$Uri,
@@ -381,6 +405,10 @@ try {
 
         Write-Log "Running step: $name"
         & $localStep
+
+        # Pick up PATH changes the step made, so the next step can use whatever
+        # it just installed.
+        Update-ProcessPath
 
         # A marker is written only after the child script returns successfully.
         New-Item `
