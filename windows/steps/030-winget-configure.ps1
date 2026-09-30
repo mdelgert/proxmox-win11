@@ -6,8 +6,6 @@ $ErrorActionPreference = 'Stop'
 $configNames = @(
     'baseline.winget'
     'ai.winget'
-    'vs.winget'
-    'sms.winget'
 )
 
 foreach ($configName in $configNames) {
